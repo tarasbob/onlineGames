@@ -1,0 +1,31 @@
+$def with (username)
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Hello World</title>
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script> 
+        <script>
+            $$( document ).ready(function() {
+
+                $$.get( "req", function( data ) {
+                    alert ("year: " + data.year);
+                }, "json" );
+
+            });
+        </script>
+
+    </head>
+    <body>
+        <h1>Logged In As $username</h1>
+
+        <form action="creategame" method="get">
+            game name: <input type="text" name="gname"><br>
+            <input type="submit" value="Submit">
+        </form>
+    </body>
+</html>
+
+        
+
+

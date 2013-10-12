@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Hello World</title>
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script> 
+        <script>
+            $$( document ).ready(function() {
+
+                alert("hello");
+
+                $$.get( "req", function( data ) {
+                    alert ("year: " + data.year);
+                }, "json" );
+
+            });
+        </script>
+
+    </head>
+    <body>
+        <h1>Hello World</h1>
+        <p>
+            poker is great!
+        </p>
+    </body>
+</html>
+
+        
+
+
