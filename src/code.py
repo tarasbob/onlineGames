@@ -1,5 +1,6 @@
 import web
 import json
+import starLogic
 
 urls = ('/', 'index',
         '/login_action', 'login_attempt',
@@ -11,6 +12,8 @@ render = web.template.render('templates/')
 
 users = dict()
 games = []
+
+g = starLogic.Game(5)
 
 class index:
     def GET(self):
