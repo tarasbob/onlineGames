@@ -2,10 +2,14 @@ import web
 import json
 import starLogic
 
-urls = ('/', 'index',
+urls = ('/', 'star',
         '/login_action', 'login_attempt',
         '/lobby', 'lobby',
-        '/creategame', 'game'
+        '/creategame', 'game',
+        '/gamestate', 'gamestate',
+        '/randommove', 'randommove',
+        '/calculatescore', 'calculatescore',
+        '/makemove', 'makemove'
         )
 render = web.template.render('templates/')
 
@@ -13,7 +17,7 @@ render = web.template.render('templates/')
 users = dict()
 games = []
 
-g = starLogic.Game(5)
+g = starLogic.Game(2)
 
 class index:
     def GET(self):
@@ -35,6 +39,27 @@ class lobby:
         else:
             return render.login()
 
+class makemove:
+    def GET(self):
+        moveData = web.input()
+        g.makeMove(g.curTurn, (int(moveData.x), int(moveData.y), int(moveData.z)))
+
+class randommove():
+    def GET(self):
+        g.playRandomly()
+
+class calculatescore():
+    def GET(self):
+        (bs, ws) = g.calculatePoints();
+        scores = dict()
+        scores['black'] = bs
+        scores['white'] = ws
+        return json.dumps(scores)
+
+class star:
+    def GET(self):
+        return render.star()
+
 class game:
     def GET(self):
         gamename = web.input()
@@ -43,6 +68,22 @@ class game:
             return render.lobby(username)
         else:
             return render.login()
+
+class gamestate:
+    def GET(self):
+        global g
+        gameInfo = dict()
+        gameInfo["boardSize"] = g.radius
+        gameInfo["curTurn"] = g.curTurn
+        cellArray = []
+        for (x, y, z) in g.grid:
+            cellArray.append(x)
+            cellArray.append(y)
+            cellArray.append(z)
+            cellArray.append(g.grid[(x,y,z)].color)
+        gameInfo["cells"] = cellArray
+
+        return json.dumps(gameInfo)
 
 class login_attempt:
     def GET(self):

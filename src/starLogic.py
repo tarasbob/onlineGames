@@ -1,4 +1,5 @@
 import itertools
+import random
 import math
 
 class Node:
@@ -12,6 +13,9 @@ class Node:
 
 class Game:
     def __init__(self, radius):
+        self.newGame(radius)
+
+    def newGame(self, radius):
         self.radius = radius
         self.grid = dict()
         self.neigh = dict()
@@ -25,7 +29,12 @@ class Game:
                 pass
             elif x + y + z == 0:
                 self.grid[(x, y, z)] = Node('e', (x, y, z))
-        
+
+    def playRandomly(self):
+        legalMoves = self.getLegalMoves()
+        if len(legalMoves) > 0:
+            move = random.choice(legalMoves)
+            self.makeMove(self.curTurn, move)
 
     def getNeighbors(self, coord):
         (x, y, z) = coord
@@ -62,7 +71,7 @@ class Game:
             #change current player's color
             self.curTurn = 'w' if self.curTurn == 'b' else 'b'
             self.movesLeft = self.movesPerTurn
-            
+
     def calculatePoints(self):
         diagnostic = ""
         for coord in self.grid:
@@ -76,7 +85,7 @@ class Game:
             iters -= 1
             numWhiteGroups = 0
             numBlackGroups = 0
-            
+
             #set all nodes to group -10
             for coord in self.grid:
                 self.grid[coord].group = -10
@@ -95,9 +104,9 @@ class Game:
                             self.explore(coord, numBlackGroups)
                             numBlackGroups += 1
                             fin = False
-                        
 
-            #count how many edge nodes are in each group               
+
+            #count how many edge nodes are in each group
             numEdgeNodesInWGroup = dict()
             numEdgeNodesInBGroup = dict()
             edgeNodes = self.getEdgeNodes()
@@ -126,12 +135,12 @@ class Game:
                     finished = False
                     self.toggleGroupColor('w', gr)
 
-            #turn all black groups into white (similar to above)                
+            #turn all black groups into white (similar to above)
             for gr in numEdgeNodesInBGroup:
                 if numEdgeNodesInBGroup[gr] < 2:
                     finished = False
                     self.toggleGroupColor('b', gr)
-                    
+
             diagnostic += '//pass\n'
             diagnostic += getDiagnostic(self.grid)
 
@@ -148,14 +157,12 @@ class Game:
                     blackScore += 1
                 else:
                     #edges not filled, not finished
-                    print "edges not filled"
                     return (0, 0)
             blackReward = (numWhiteGroups - numBlackGroups)*2
             whiteReward = -blackReward
             return(blackScore + blackReward, whiteScore + whiteReward)
         else:
             #colors keep on swapping after two iterations, game unfinished
-            print diagnostic
             return (0, 0)
 
     def toggleGroupColor(self, col, groupNum):
@@ -165,7 +172,7 @@ class Game:
 
     def getEdgeNodes(self):
         return [(x, y, z) for (x, y, z) in self.grid if max(abs(x), abs(y), abs(z)) == self.radius]
-        
+
     def explore(self, coord, num):
         if self.grid[coord].group >= 0:
             raise Exception("trying to explore group that is already explored")

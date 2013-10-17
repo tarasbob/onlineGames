@@ -1,22 +1,20 @@
  $('document').ready(function() {
 		var c=document.getElementById("myCanvas");
 		var context=c.getContext("2d");
-
 		var cells = [];
-
 
 		for(var i=0; i<10; i++){
 		    cell = new Object();
 		    cell.x = 50+i*5;
 		    cell.y = 100+i*8;
 		    cells.push(cell);
-
 		}
 
 		//drawCircleAlt(300, 300, 30);
 
         var centerX = 500;
         var centerY = 500;
+        var cellSize = 20;
 
 		var col1 = "4E7512";
 		var col2 = "6A51A1";
@@ -24,36 +22,61 @@
 		var colMiddle = "7F4A13";
         var curCol = col1;
 
-        var sz = 4;
-        for(var i = -sz; i <= sz; i++){
-            for(var j = -sz; j <= sz; j++){
-                for(var k = -sz; k <= sz; k++){
-                    if(i + j + k == 0){
-						if(i == 0 && j == 0 && k == 0){
-							context.fillStyle=colMiddle;
-						} else {
-							context.fillStyle=colBlank;
-						}
-						drawCell(i, j, k, 20);
-                    }
-                }
-            }
-        }
+
         //context.fillStyle="green";
         //drawCell(0, 0, 0, 20);
 		
 		//--------------
 		
 		//-------------
+        //
+
 		
-        context.fill();
+        function refreshBoard(){
+            $.get("gamestate", function(data){
+                turn = data.curTurn;
+                sz = data.boardSize;
+                context.beginPath()
+                context.rect(0, 0, c.width, c.height);
+                context.closePath()
+                context.fillStyle = 'yellow';
+                context.fill();
+                for(var i = 0; i<data.cells.length/4; i++){
+                    x = data.cells[i*4+0];
+                    y = data.cells[i*4+1];
+                    z = data.cells[i*4+2];
+                    c = data.cells[i*4+3];
+                    if(c == 'e')
+                        context.fillStyle=colBlank;
+                    else if(c == 'b')
+                        context.fillStyle=col1;
+                    else if(c == 'w')
+                        context.fillStyle=col2;
+                    drawCell(x, y, z, cellSize);
+                }
+            }, "json");
+        }
+        setInterval(refreshBoard, 300);
 
         c.addEventListener('click', function(e){
-            //drawHex(e.offsetX, e.offsetY, 30);
-            toggleHex(e.offsetX-centerX, e.offsetY-centerY, 20);
+            coord = getHex(e.offsetX-centerX, e.offsetY-centerY, cellSize);
+            $.get(
+                "makemove", { "x": coord[0], "y": coord[1], "z": coord[2] }
+            );
         }, false);
 
-        function toggleHex(xPos, yPos, size){
+        $("#randommove").click(function(){
+            $.get("randommove");
+        });
+
+        $("#calculatescore").click(function(){
+            $.get("calculatescore", function(data){
+                $("#bscore").text(data.black);
+                $("#wscore").text(data.white);
+            }, "json");
+        });
+
+        function getHex(xPos, yPos, size){
             var x = ((1/3)*Math.sqrt(3)*xPos - (1/3)*yPos) / size;
             var z = (2/3)*yPos/size
             var y = -x-z;
@@ -74,16 +97,7 @@
                 rz = -rx-ry;
             }
 
-            if(Math.max(Math.abs(rx), Math.abs(ry), Math.abs(rz)) <= sz){
-                context.fillStyle=curCol;
-                drawCell(rx, ry, rz, size);
-                context.fill();
-                if(curCol == col1){
-                    curCol = col2;
-                } else {
-                    curCol = col1;
-                }
-            }
+            return [rx, ry, rz];
 
         }
 
