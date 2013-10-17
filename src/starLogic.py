@@ -30,11 +30,14 @@ class Game:
             elif x + y + z == 0:
                 self.grid[(x, y, z)] = Node('e', (x, y, z))
 
-    def playRandomly(self):
-        legalMoves = self.getLegalMoves()
-        if len(legalMoves) > 0:
-            move = random.choice(legalMoves)
-            self.makeMove(self.curTurn, move)
+    def playRandomly(self, numMoves=1):
+        for i in range(numMoves):
+            legalMoves = self.getLegalMoves()
+            if len(legalMoves) > 0:
+                move = random.choice(legalMoves)
+                self.makeMove(self.curTurn, move)
+            else:
+                break
 
     def getNeighbors(self, coord):
         (x, y, z) = coord
@@ -72,7 +75,7 @@ class Game:
             self.curTurn = 'w' if self.curTurn == 'b' else 'b'
             self.movesLeft = self.movesPerTurn
 
-    def calculatePoints(self):
+    def calculatePoints(self, iters=3):
         diagnostic = ""
         for coord in self.grid:
             self.grid[coord].tmpCol = self.grid[coord].color
@@ -80,7 +83,6 @@ class Game:
         diagnostic += getDiagnostic(self.grid)
 
         finished = False
-        iters = 10
         while iters > 0 and not finished:
             iters -= 1
             numWhiteGroups = 0
@@ -194,4 +196,24 @@ def getDiagnostic(grid):
             diagnostic += 'context.fillStyle="blue";\n'
         diagnostic += 'drawCell('+str(x)+','+str(y)+','+str(z)+',20);\n'
     return diagnostic
+
+def findProblematicGame(iters):
+    maxgame = None
+    maxiters = 0
+    for i in range(iters):
+        g = Game(2)
+        curiters = numItersUntilStable(g)
+        if curiters > maxiters:
+            maxiters = curiters
+            maxgame = g
+    return maxgame
+
+def numItersUntilStable(g):
+    res = (0, 0)
+    iters = 0
+    while res == (0, 0):
+        iters += 1
+        g.playRandomly(1000)
+        res = g.calculatePoints(iters)
+    return iters
 
