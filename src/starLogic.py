@@ -20,11 +20,11 @@ class Game:
         self.whiteScore = 0
         self.state = "normal"
 
-    def newGame(self, radius=7):
+    def newGame(self, radius=11):
         self.radius = radius
         self.grid = dict()
         self.neigh = dict()
-        self.movesPerTurn = 1
+        self.movesPerTurn = 2
         self.curTurn = 'b'
         self.movesLeft = 1
         self.state = "normal"
@@ -80,12 +80,13 @@ class Game:
             self.curTurn = 'w' if self.curTurn == 'b' else 'b'
             self.movesLeft = self.movesPerTurn
 
-    def calculatePoints(self, iters=1):
+    def calculatePoints(self, iters=10):
         for coord in self.grid:
             self.grid[coord].tmpCol = self.grid[coord].color
 
         finished = False
         while iters > 0 and not finished:
+            print iters
             iters -= 1
             numWhiteGroups = 0
             numBlackGroups = 0
@@ -225,7 +226,3 @@ def numItersUntilStable(g):
         g.playRandomly(1000)
         res = g.calculatePoints(iters)
     return iters
-
-g = findProblematicGame(100)
-print numItersUntilStable(g)
-

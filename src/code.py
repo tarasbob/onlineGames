@@ -69,6 +69,15 @@ class command:
                 gameInfo["groups"] = groups
                 gameInfo["state"] = "score"
             return json.dumps(gameInfo)
+        elif inp.cmd_text == "getgames":
+            result = dict()
+            inProgress = []
+            waiting = []
+            for gname in games:
+                if games[gname].w:
+                    inProgress.append(gname)
+                else:
+                    waiting.append(gname)
 
 class creategame:
     def GET(self):

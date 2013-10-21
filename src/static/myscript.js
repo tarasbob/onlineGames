@@ -16,12 +16,21 @@
     var centerY = 500;
     var cellSize = 20;
 
-    var col1 = "111111";
-    var col2 = "eeeeee";
-    var colBlank = "F7D8B7";
-    var colMiddle = "7F4A13";
-    var curCol = col1;
+    var colw = "ff6400";
+    var colw_hover = "a64100";
+    var colb= "00a383";
+    var colb_hover = "006a55";
+    var colBlank = "fffa73";
+    var colBlank_hover = "a69f00";
 
+    var special_colw = "bf6830";
+    var special_colw_hover = "ff8b40";
+    var special_colb= "1f7a68";
+    var special_colb_hover = "34d1b2";
+    var special_colBlank = "bfba30";
+    var special_colBlank_hover = "fff840";
+
+    var background_col = "2e2337";
 
     function refreshBoard(){
         $.get("command", {"cmd_text": "gamestate"}, function(data){
@@ -30,7 +39,7 @@
             context.beginPath()
             context.rect(0, 0, c.width, c.height);
             context.closePath()
-            context.fillStyle = 'black';
+            context.fillStyle = background_col;
             context.fill();
             for(var i = 0; i<data.cells.length/4; i++){
                 x = data.cells[i*4+0];
@@ -40,12 +49,10 @@
                 if(c == 'e')
                     context.fillStyle=colBlank;
                 else if(c == 'b')
-                    context.fillStyle=col1;
+                    context.fillStyle=colb;
                 else if(c == 'w')
-                    context.fillStyle=col2;
+                    context.fillStyle=colw;
                 drawCell(x, y, z, cellSize);
-                context.fillStyle="blue";
-                drawText(x, y, z);
             }
             if(data.state == "score"){
                 for(var i = 0; i<data.groups.length/4; i++){
