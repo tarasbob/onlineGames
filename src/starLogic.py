@@ -20,7 +20,7 @@ class Game:
         self.whiteScore = 0
         self.state = "normal"
 
-    def newGame(self, radius=2):
+    def newGame(self, radius=7):
         self.radius = radius
         self.grid = dict()
         self.neigh = dict()
@@ -81,11 +81,8 @@ class Game:
             self.movesLeft = self.movesPerTurn
 
     def calculatePoints(self, iters=1):
-        diagnostic = ""
         for coord in self.grid:
             self.grid[coord].tmpCol = self.grid[coord].color
-        diagnostic += '//orig\n'
-        diagnostic += getDiagnostic(self.grid)
 
         finished = False
         while iters > 0 and not finished:
@@ -137,19 +134,17 @@ class Game:
 
             #turn all white groups with less than two edge nodes into a black group
             finished = True
-            for gr in numEdgeNodesInWGroup:
-                if numEdgeNodesInWGroup[gr] < 2:
+            for gr in range(numWhiteGroups):
+                if gr not in numEdgeNodesInWGroup or numEdgeNodesInWGroup[gr] < 2:
                     finished = False
                     self.toggleGroupColor('w', gr)
 
             #turn all black groups into white (similar to above)
-            for gr in numEdgeNodesInBGroup:
-                if numEdgeNodesInBGroup[gr] < 2:
+            for gr in range(numBlackGroups):
+                if gr not in numEdgeNodesInBGroup or numEdgeNodesInBGroup[gr] < 2:
                     finished = False
                     self.toggleGroupColor('b', gr)
 
-            diagnostic += '//pass\n'
-            diagnostic += getDiagnostic(self.grid)
 
         self.numWhiteGroups = numWhiteGroups
         self.numBlackGroups = numBlackGroups
@@ -181,6 +176,7 @@ class Game:
         for coord in self.grid:
             if self.grid[coord].group == groupNum and self.grid[coord].tmpCol == col:
                 self.grid[coord].tmpCol = 'b' if col == 'w' else 'w'
+                self.grid[coord].group = -1
 
     def getEdgeNodes(self):
         return [(x, y, z) for (x, y, z) in self.grid if max(abs(x), abs(y), abs(z)) == self.radius]
@@ -195,7 +191,7 @@ class Game:
             self.grid[coord].group = num
             neigh = self.getNeighbors(coord)
             for n in neigh:
-                if self.grid[n].group == -10 and self.grid[n].tmpCol == col: stack.append(n)
+                if self.grid[n].group == -10 and self.grid[n].tmpCol == col and n not in stack: stack.append(n)
 
 def getDiagnostic(grid):
     diagnostic = ""
@@ -208,10 +204,13 @@ def getDiagnostic(grid):
     return diagnostic
 
 def findProblematicGame(iters):
+    for i in range(1, 20):
+        g = Game(i)
+        print i, len(g.grid)
     maxgame = None
     maxiters = 0
     for i in range(iters):
-        g = Game(2)
+        g = Game(11)
         curiters = numItersUntilStable(g)
         if curiters > maxiters:
             maxiters = curiters
@@ -226,4 +225,7 @@ def numItersUntilStable(g):
         g.playRandomly(1000)
         res = g.calculatePoints(iters)
     return iters
+
+g = findProblematicGame(100)
+print numItersUntilStable(g)
 

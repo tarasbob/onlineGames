@@ -16,8 +16,8 @@
     var centerY = 500;
     var cellSize = 20;
 
-    var col1 = "4E7512";
-    var col2 = "6A51A1";
+    var col1 = "111111";
+    var col2 = "eeeeee";
     var colBlank = "F7D8B7";
     var colMiddle = "7F4A13";
     var curCol = col1;
@@ -44,6 +44,8 @@
                 else if(c == 'w')
                     context.fillStyle=col2;
                 drawCell(x, y, z, cellSize);
+                context.fillStyle="blue";
+                drawText(x, y, z);
             }
             if(data.state == "score"){
                 for(var i = 0; i<data.groups.length/4; i++){
@@ -63,8 +65,6 @@
                     $("#wscore").text(data.whiteScore);
                     $("#wgroups").text(data.whiteGroups);
                 }
-                drawCircle(1, 1, -2, cellSize);
-
             }
         }, "json");
     }
@@ -125,6 +125,19 @@
     function drawCell(x, y, z, size){
         drawHex(centerX+size*Math.sqrt(3)*(x+z/2), centerY+(3/2)*z*size, size);
         context.fill();
+    }
+
+    function drawText(x, y, z, inp_text){
+        var realX = centerX+cellSize*Math.sqrt(3)*(x+z/2);
+        var realY = centerY+(3/2)*z*cellSize;
+        context.font = "10px Arial";
+        disp_coord = "";
+        disp_coord.concat(x.toString());
+        disp_coord.concat(" ");
+        disp_coord.concat(y.toString());
+        disp_coord.concat(" ");
+        disp_coord.concat(z.toString());
+        context.fillText(x.toString() + " " + y.toString() + " " + z.toString(), realX-10, realY);
     }
 
     function drawCircle(x, y, z, size){
