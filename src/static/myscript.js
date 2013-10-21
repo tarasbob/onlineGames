@@ -24,13 +24,13 @@
 
 
     function refreshBoard(){
-        $.get("gamestate", function(data){
+        $.get("command", {"cmd_text": "gamestate"}, function(data){
             turn = data.curTurn;
             sz = data.boardSize;
             context.beginPath()
             context.rect(0, 0, c.width, c.height);
             context.closePath()
-            context.fillStyle = 'yellow';
+            context.fillStyle = 'black';
             context.fill();
             for(var i = 0; i<data.cells.length/4; i++){
                 x = data.cells[i*4+0];
@@ -44,6 +44,27 @@
                 else if(c == 'w')
                     context.fillStyle=col2;
                 drawCell(x, y, z, cellSize);
+            }
+            if(data.state == "score"){
+                for(var i = 0; i<data.groups.length/4; i++){
+                    x = data.groups[i*4+0];
+                    y = data.groups[i*4+1];
+                    z = data.groups[i*4+2];
+                    c = data.groups[i*4+3];
+                    if(c == 'e')
+                        context.fillStyle=colBlank;
+                    else if(c == 'b')
+                        context.fillStyle=col1;
+                    else if(c == 'w')
+                        context.fillStyle=col2;
+                    drawCircle(x, y, z, cellSize);
+                    $("#bscore").text(data.blackScore);
+                    $("#bgroups").text(data.blackGroups);
+                    $("#wscore").text(data.whiteScore);
+                    $("#wgroups").text(data.whiteGroups);
+                }
+                drawCircle(1, 1, -2, cellSize);
+
             }
         }, "json");
     }
@@ -64,8 +85,8 @@
         $.get("command", {"cmd_text": "inc_iter"});
     });
 
-    $("#problematic").click(function(){
-        $.get("command", {"cmd_text": "changestate"});
+    $("#newgame").click(function(){
+        $.get("command", {"cmd_text": "newgame"});
     });
 
     $("#calculatescore").click(function(){
@@ -100,8 +121,19 @@
 
     }
 
+
     function drawCell(x, y, z, size){
         drawHex(centerX+size*Math.sqrt(3)*(x+z/2), centerY+(3/2)*z*size, size);
+        context.fill();
+    }
+
+    function drawCircle(x, y, z, size){
+        var realX = centerX+size*Math.sqrt(3)*(x+z/2);
+        var realY = centerY+(3/2)*z*size;
+        context.beginPath();
+        context.arc(realX, realY, size/2, 0, 2*Math.PI, false);
+        context.closePath();
+        context.stroke();
         context.fill();
     }
 

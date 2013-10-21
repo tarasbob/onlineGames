@@ -14,14 +14,20 @@ class Node:
 class Game:
     def __init__(self, radius):
         self.newGame(radius)
+        self.numWhiteGroups = 0
+        self.numBlackGroups = 0
+        self.blackScore = 0
+        self.whiteScore = 0
+        self.state = "normal"
 
-    def newGame(self, radius):
+    def newGame(self, radius=2):
         self.radius = radius
         self.grid = dict()
         self.neigh = dict()
         self.movesPerTurn = 1
         self.curTurn = 'b'
         self.movesLeft = 1
+        self.state = "normal"
 
         for (x, y, z) in itertools.product(range(-self.radius, self.radius+1), repeat=3):
             if x == y == z == 0:
@@ -45,13 +51,12 @@ class Game:
         out = [(i + x, j + y, k + z) for (i, j, k)
               in itertools.permutations((0, 1, -1))
               if (i + x, j + y, k + z) in self.grid]
-        if (x, y, z) in list(itertools.permutations((0, 1, -1))):
-            out.extend(list(itertools.permutations((0, 1, -1))))
+        aroundCentre = list(itertools.permutations((0, 1, -1)))
+        if (x, y, z) in aroundCentre:
+            out.extend(aroundCentre)
             out = list(set(out))
         if coord in out:
             out.remove(coord)
-        if coord in out:
-            raise Exception("self found as neighbor")
         return out
 
     def getLegalMoves(self):
@@ -75,7 +80,7 @@ class Game:
             self.curTurn = 'w' if self.curTurn == 'b' else 'b'
             self.movesLeft = self.movesPerTurn
 
-    def calculatePoints(self, iters=3):
+    def calculatePoints(self, iters=1):
         diagnostic = ""
         for coord in self.grid:
             self.grid[coord].tmpCol = self.grid[coord].color
@@ -146,6 +151,8 @@ class Game:
             diagnostic += '//pass\n'
             diagnostic += getDiagnostic(self.grid)
 
+        self.numWhiteGroups = numWhiteGroups
+        self.numBlackGroups = numBlackGroups
         #calculate final score
         if finished:
             #game ramains stable after two iterations
@@ -160,12 +167,15 @@ class Game:
                 else:
                     #edges not filled, not finished
                     return (0, 0)
+            self.blackScore = blackScore
+            self.whiteScore = whiteScore
             blackReward = (numWhiteGroups - numBlackGroups)*2
             whiteReward = -blackReward
-            return(blackScore + blackReward, whiteScore + whiteReward)
+            self.blackTotal = blackScore + blackReward
+            self.whiteTotal = whiteScore + whiteReward
         else:
-            #colors keep on swapping after two iterations, game unfinished
-            return (0, 0)
+            self.blackTotal = 0
+            self.whiteTotal = 0
 
     def toggleGroupColor(self, col, groupNum):
         for coord in self.grid:
