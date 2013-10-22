@@ -21,63 +21,82 @@ class Session:
         self.location = "login"
         self.username = ""
 
+class commandHandler:
+    def getGame(self, sess):
+        global games
+        return games[sess.gname]
+
+    def logout(self, sess):
+        global sessions
+        sessions.pop(sess.sessionID)
+
+    def makemove(self, sess):
+        g = self.getGame(sess)
+        if g.curTurn == 'w' and sess.username == g.w:
+            g.makeMove('w', (int(inp.x), int(inp.y), int(inp.z)))
+        elif g.curTurn == 'b' and sess.username == g.b:
+            g.makeMove('b', (int(inp.x), int(inp.y), int(inp.z)))
+
+    def randommove(self, sess):
+        g.playRandomly(1000)
+
+    def newgame(self, sess):
+        g = self.getGame(sess)
+        g.newGame()
+
+    def calculatescore(self, sess):
+        g = self.getGame(sess)
+        g.state = "score"
+        g.calculatePoints()
+
+    def gamestate(self, sess):
+        g = self.getGame(sess)
+        gameInfo = dict()
+        gameInfo["boardSize"] = g.radius
+        gameInfo["curTurn"] = g.curTurn
+        cellArray = []
+        for (x, y, z) in g.grid:
+            cellArray.append(x)
+            cellArray.append(y)
+            cellArray.append(z)
+            cellArray.append(g.grid[(x,y,z)].color)
+        gameInfo["cells"] = cellArray
+        gameInfo["state"] = "normal"
+        if g.state == "score":
+            groups = []
+            for (x, y, z) in g.grid:
+                groups.append(x)
+                groups.append(y)
+                groups.append(z)
+                groups.append(g.grid[(x,y,z)].tmpCol)
+            gameInfo["whiteGroups"] = g.numWhiteGroups
+            gameInfo["blackGroups"] = g.numBlackGroups
+            gameInfo["blackScore"] = g.blackScore
+            gameInfo["whiteScore"] = g.whiteScore
+            gameInfo["groups"] = groups
+            gameInfo["state"] = "score"
+        return json.dumps(gameInfo)
+
+    def getgames(self, sess):
+        g = self.getGame(sess)
+        result = dict()
+        inProgress = []
+        waiting = []
+        for gname in games:
+            if games[gname].w:
+                inProgress.append(gname)
+            else:
+                waiting.append(gname)
+
 class command:
     def GET(self):
-        global pointiter
-        global state
-        global games
         global sessions
+        inp = web.input()
         sessionID = web.cookies().get('sessionID')
         sess = sessions[sessionID]
-        g = games[sess.gname]
-        inp = web.input()
-        if inp.cmd_text == "makemove":
-            if g.curTurn == 'w' and sess.username == g.w:
-                g.makeMove('w', (int(inp.x), int(inp.y), int(inp.z)))
-            elif g.curTurn == 'b' and sess.username == g.b:
-                g.makeMove('b', (int(inp.x), int(inp.y), int(inp.z)))
-        elif inp.cmd_text == "randommove":
-            g.playRandomly(1000)
-        elif inp.cmd_text == "newgame":
-            g.newGame()
-        elif inp.cmd_text == "calculatescore":
-            g.state = "score"
-            g.calculatePoints()
-        elif inp.cmd_text == "gamestate":
-            gameInfo = dict()
-            gameInfo["boardSize"] = g.radius
-            gameInfo["curTurn"] = g.curTurn
-            cellArray = []
-            for (x, y, z) in g.grid:
-                cellArray.append(x)
-                cellArray.append(y)
-                cellArray.append(z)
-                cellArray.append(g.grid[(x,y,z)].color)
-            gameInfo["cells"] = cellArray
-            gameInfo["state"] = "normal"
-            if g.state == "score":
-                groups = []
-                for (x, y, z) in g.grid:
-                    groups.append(x)
-                    groups.append(y)
-                    groups.append(z)
-                    groups.append(g.grid[(x,y,z)].tmpCol)
-                gameInfo["whiteGroups"] = g.numWhiteGroups
-                gameInfo["blackGroups"] = g.numBlackGroups
-                gameInfo["blackScore"] = g.blackScore
-                gameInfo["whiteScore"] = g.whiteScore
-                gameInfo["groups"] = groups
-                gameInfo["state"] = "score"
-            return json.dumps(gameInfo)
-        elif inp.cmd_text == "getgames":
-            result = dict()
-            inProgress = []
-            waiting = []
-            for gname in games:
-                if games[gname].w:
-                    inProgress.append(gname)
-                else:
-                    waiting.append(gname)
+        ch = commandHandler()
+
+        return getattr(ch, inp.cmd_text)(sess)
 
 class creategame:
     def GET(self):
