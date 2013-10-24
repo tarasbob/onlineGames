@@ -32,6 +32,11 @@
 
     var background_col = "2e2337";
 
+    alert($("myCanvas").parent().width());
+
+    $("myCanvas").attr('width', $("myCanvas").parent().width());
+    $("myCanvas").attr('height', $("myCanvas").parent().height());
+
     function refreshBoard(){
         $.get("command", {"cmd_text": "gamestate"}, function(data){
             turn = data.curTurn;

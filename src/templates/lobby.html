@@ -38,32 +38,16 @@
 
     <div class="container">
 
-		<table class="table table-hover">
-			<tr>
-				<th>Name</th>
-				<th>Rank</th>
-				<th>Time</th>
-			</tr>
-			<tr>
-				<td>Mike</td>
-				<td>2880</td>
-				<td>1 hour</td>
-			</tr>
-			<tr>
-				<td>Peter</td>
-				<td>1750</td>
-				<td>2 hours</td>
-			</tr>
-			<tr>
-				<td>Jenny</td>
-				<td>1730</td>
-				<td>30 min</td>
-			</tr>
-			<tr>
-				<td>Tommy</td>
-				<td>1430</td>
-				<td>25 min</td>
-			</tr>
+		<table class="table table-hover" id="gameTable">
+            <thead>
+                <tr>
+                    <th>Name</th><th>Time</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+            </tbody>
 		</table>
 		
 		 <a data-toggle="modal" href="#myModal" class="btn btn-primary btn-lg">Create Game</a>
@@ -90,7 +74,7 @@
 				</div>
 				<div class="modal-footer">
 				  <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-				  <button type="button" class="btn btn-primary">Create</button>
+				  <button type="button" class="btn btn-primary" id="btn-create">Create</button>
 				</div>
 			  </div><!-- /.modal-content -->
 			</div><!-- /.modal-dialog -->

@@ -30,26 +30,26 @@ class commandHandler:
         global sessions
         sessions.pop(sess.sessionID)
 
-    def makemove(self, sess):
+    def makemove(self, sess, inp):
         g = self.getGame(sess)
         if g.curTurn == 'w' and sess.username == g.w:
             g.makeMove('w', (int(inp.x), int(inp.y), int(inp.z)))
         elif g.curTurn == 'b' and sess.username == g.b:
             g.makeMove('b', (int(inp.x), int(inp.y), int(inp.z)))
 
-    def randommove(self, sess):
+    def randommove(self, sess, inp):
         g.playRandomly(1000)
 
     def newgame(self, sess):
         g = self.getGame(sess)
         g.newGame()
 
-    def calculatescore(self, sess):
+    def calculatescore(self, sess, inp):
         g = self.getGame(sess)
         g.state = "score"
         g.calculatePoints()
 
-    def gamestate(self, sess):
+    def gamestate(self, sess, inp):
         g = self.getGame(sess)
         gameInfo = dict()
         gameInfo["boardSize"] = g.radius
@@ -77,16 +77,34 @@ class commandHandler:
             gameInfo["state"] = "score"
         return json.dumps(gameInfo)
 
-    def getgames(self, sess):
-        g = self.getGame(sess)
+    def getgames(self, sess, inp):
         result = dict()
-        inProgress = []
-        waiting = []
-        for gname in games:
-            if games[gname].w:
-                inProgress.append(gname)
-            else:
-                waiting.append(gname)
+        waitingGames = [gname for gname in games if not games[gname].w]
+        result["waitingGames"] = waitingGames
+        return json.dumps(result)
+
+    def create(self, sess, inp):
+        global games
+        gname = web.input().gname
+        if gname not in games:
+            g = starLogic.Game(5)
+            g.b = sess.username
+            g.w = None
+            games[gname] = g
+            sess.location = "game"
+            sess.gname = gname
+
+    def join(self, sess, inp):
+        global games
+        gname = web.input().gname
+        try:
+            g = games[gname]
+            if not g.w:
+                g.w = sess.username
+                sess.location = "game"
+                sess.gname = gname
+        except KeyError:
+            pass
 
 class command:
     def GET(self):
@@ -96,25 +114,7 @@ class command:
         sess = sessions[sessionID]
         ch = commandHandler()
 
-        return getattr(ch, inp.cmd_text)(sess)
-
-class creategame:
-    def GET(self):
-        global sessions
-        global games
-        sessionID = web.cookies().get('sessionID')
-        sess = sessions[sessionID]
-        gname = web.input().gname
-        if gname not in games:
-            g = starLogic.Game(2)
-            g.b = sess.username
-            g.w = None
-            games[gname] = g
-            sess.location = "game"
-            sess.gname = gname
-            return render.star()
-        else:
-            return "game already exists"
+        return getattr(ch, inp.cmd_text)(sess, inp)
 
 class joingame:
     def GET(self):
@@ -147,7 +147,7 @@ class index:
         if sess.location == "lobby":
             return render.lobby()
         if sess.location == "game":
-            return render.star()
+            return render.game()
 
 class login_action:
     def GET(self):
