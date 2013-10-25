@@ -1,76 +1,61 @@
  $('document').ready(function() {
-    var c=document.getElementById("myCanvas");
-    var context=c.getContext("2d");
-    var cells = [];
+    window.c=document.getElementById("myCanvas");
+    window.context=c.getContext("2d");
 
-    for(var i=0; i<10; i++){
-        cell = new Object();
-        cell.x = 50+i*5;
-        cell.y = 100+i*8;
-        cells.push(cell);
-    }
+    window.colw = "ff6400";
+    window.colw_hover = "a64100";
+    window.colb= "00a383";
+    window.colb_hover = "006a55";
+    window.colBlank = "fffa73";
+    window.colBlank_hover = "a69f00";
 
-    //drawCircleAlt(300, 300, 30);
+    window.special_colw = "bf6830";
+    window.special_colw_hover = "ff8b40";
+    window.special_colb= "1f7a68";
+    window.special_colb_hover = "34d1b2";
+    window.special_colBlank = "bfba30";
+    window.special_colBlank_hover = "fff840";
 
-    var centerX = 500;
-    var centerY = 500;
-    var cellSize = 20;
+    window.background_col = "2e2337";
 
-    var colw = "ff6400";
-    var colw_hover = "a64100";
-    var colb= "00a383";
-    var colb_hover = "006a55";
-    var colBlank = "fffa73";
-    var colBlank_hover = "a69f00";
-
-    var special_colw = "bf6830";
-    var special_colw_hover = "ff8b40";
-    var special_colb= "1f7a68";
-    var special_colb_hover = "34d1b2";
-    var special_colBlank = "bfba30";
-    var special_colBlank_hover = "fff840";
-
-    var background_col = "2e2337";
-
-    alert($("myCanvas").parent().width());
-
-    $("myCanvas").attr('width', $("myCanvas").parent().width());
-    $("myCanvas").attr('height', $("myCanvas").parent().height());
 
     function refreshBoard(){
         $.get("command", {"cmd_text": "gamestate"}, function(data){
+            var radius = 5;
             turn = data.curTurn;
             sz = data.boardSize;
-            context.beginPath()
-            context.rect(0, 0, c.width, c.height);
-            context.closePath()
-            context.fillStyle = background_col;
-            context.fill();
+            window.context.beginPath()
+            window.context.rect(0, 0, window.c.width, window.c.height);
+            window.context.closePath()
+            window.context.fillStyle = window.background_col;
+            window.context.fill();
             for(var i = 0; i<data.cells.length/4; i++){
                 x = data.cells[i*4+0];
                 y = data.cells[i*4+1];
                 z = data.cells[i*4+2];
-                c = data.cells[i*4+3];
-                if(c == 'e')
-                    context.fillStyle=colBlank;
-                else if(c == 'b')
-                    context.fillStyle=colb;
-                else if(c == 'w')
-                    context.fillStyle=colw;
-                drawCell(x, y, z, cellSize);
+                col = data.cells[i*4+3];
+                if(col == 'e')
+                    window.context.fillStyle=window.colBlank;
+                else if(col == 'b')
+                    window.context.fillStyle=window.colb;
+                else if(col == 'w')
+                    window.context.fillStyle=window.colw;
+
+                var newSz = window.c.width/(radius*5);
+                drawCell(x, y, z, newSz);
             }
             if(data.state == "score"){
                 for(var i = 0; i<data.groups.length/4; i++){
                     x = data.groups[i*4+0];
                     y = data.groups[i*4+1];
                     z = data.groups[i*4+2];
-                    c = data.groups[i*4+3];
-                    if(c == 'e')
-                        context.fillStyle=colBlank;
-                    else if(c == 'b')
-                        context.fillStyle=col1;
-                    else if(c == 'w')
-                        context.fillStyle=col2;
+                    col = data.groups[i*4+3];
+                    if(col == 'e')
+                        window.context.fillStyle=window.colBlank;
+                    else if(col == 'b')
+                        window.context.fillStyle=window.col1;
+                    else if(col == 'w')
+                        window.context.fillStyle=window.col2;
                     drawCircle(x, y, z, cellSize);
                     $("#bscore").text(data.blackScore);
                     $("#bgroups").text(data.blackGroups);
@@ -82,8 +67,21 @@
     }
     setInterval(refreshBoard, 300);
 
+    //set the color size of canvas at the beginning
+    window.c.width=$("#canv-div").width();
+    window.c.height=$("#canv-div").width();
+
+    $(window).resize(function() {
+        window.c.width=$("#canv-div").width();
+        window.c.height=$("#canv-div").width();
+    });
+
     c.addEventListener('click', function(e){
-        coord = getHex(e.offsetX-centerX, e.offsetY-centerY, cellSize);
+        var centerX = window.c.width/2;
+        var centerY = window.c.height/2;
+        var radius = 5;
+        var newSz = window.c.width/(radius*5);
+        coord = getHex(e.offsetX-centerX, e.offsetY-centerY, newSz);
         $.get(
             "command", { "cmd_text": "makemove", "x": coord[0], "y": coord[1], "z": coord[2] }
         );
@@ -135,11 +133,15 @@
 
 
     function drawCell(x, y, z, size){
+        var centerX = window.c.width/2;
+        var centerY = window.c.height/2;
         drawHex(centerX+size*Math.sqrt(3)*(x+z/2), centerY+(3/2)*z*size, size);
-        context.fill();
+        window.context.fill();
     }
 
     function drawText(x, y, z, inp_text){
+        var centerX = window.c.width/2;
+        var centerY = window.c.height/2;
         var realX = centerX+cellSize*Math.sqrt(3)*(x+z/2);
         var realY = centerY+(3/2)*z*cellSize;
         context.font = "10px Arial";
@@ -153,6 +155,8 @@
     }
 
     function drawCircle(x, y, z, size){
+        var centerX = window.c.width/2;
+        var centerY = window.c.height/2;
         var realX = centerX+size*Math.sqrt(3)*(x+z/2);
         var realY = centerY+(3/2)*z*size;
         context.beginPath();
@@ -163,17 +167,18 @@
     }
 
     function drawHex(x, y, size){
-        context.beginPath();
+        size = size * 0.97;
+        window.context.beginPath();
 
-        context.moveTo(x, y+size);
+        window.context.moveTo(x, y+size);
         for(var i=1; i<6; i++){
             xp = x + size*Math.sin(i*Math.PI*2/6);
             yp = y + size*Math.cos(i*Math.PI*2/6);
-            context.lineTo(xp, yp);
+            window.context.lineTo(xp, yp);
         }
-        context.closePath();
-        context.stokeStyle="red";
-        context.stroke();
+        window.context.closePath();
+        window.context.strokeStyle="red";
+        //window.context.stroke();
     }
 
     });
