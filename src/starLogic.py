@@ -7,42 +7,87 @@ class Node:
         self.color = col
         self.coordinates = coord
         self.group = -10
+        self.special = False
 
     def __str__(self):
         return self.color
 
 class Game:
-    def __init__(self, radius):
-        self.newGame(radius)
-        self.numWhiteGroups = 0
-        self.numBlackGroups = 0
-        self.blackScore = 0
-        self.whiteScore = 0
-        self.state = "created"
+    def __init__(self, boardRadius=11):
+        self.baseTime = baseTime
+        self.addTime = addTime
+        self.board = GameBoard(boardRadius)
+        self.state = "waiting"
+        self.players = []
+        self.curTurn = 1
+        self.movesLeft = 1
+        self.movesPerTurn = 2
+        self.moveHistory = []
 
-    def newGame(self, radius=11):
+    def addPlayer(self, playerName):
+        """
+        Add a player to the game, if there are two players, start the game
+        """
+        if self.state == "waiting":
+            self.players.append(playerName)
+            if len(self.players) == 2:
+                self.startGame()
+
+    def startGame(self):
+        random.shuffle(players)
+        self.pieceColor[players[0]] = 1
+        self.pieceColor[players[1]] = 2
+        self.state = "playing"
+
+    def doMove(self, playerName, location):
+        try:
+            moveColor = self.pieceColor[playerName]
+        except KeyError:
+            #PlayerName is not in this game
+            return
+        if moveColor != self.curTurn:
+            return
+        self.moveHistory.append((playerName, location))
+        if location == "pass":
+            if len(self.moveHistory) > 1 and self.moveHistory[-1][1] == "pass" and self.moveHistory[-2][1] == "pass":
+                #both passed, calculate score
+                result = self.board.computeScore()
+                if result:
+                    self.state = "finished"
+                    self.winner = self.players[result["winner"]]
+            else:
+                self.curTurn = 3 - self.curTurn
+                self.movesLeft = self.movesPerTurn
+            return
+        if location == "resign":
+            self.state = "finished"
+            self.winner = self.players[0] if self.players[0] != playerName else self.players[1]
+            return
+        if self.board.grid[location] != 0:
+            return
+        self.board.grid[location] = moveColor
+        self.moveHistory.append((playerName, location))
+        self.movesLeft -= 1
+        if self.movesLeft == 0:
+            self.curTurn = 3 - self.curTurn
+            self.movesLeft = self.movesPerTurn
+
+class GameBoard:
+    def __init__(self, radius):
         self.radius = radius
         self.grid = dict()
-        self.neigh = dict()
-        self.movesPerTurn = 2
-        self.curTurn = 'b'
-        self.movesLeft = 1
 
         for (x, y, z) in itertools.product(range(-self.radius, self.radius+1), repeat=3):
             if x == y == z == 0:
                 #do not create node 0 0 0
                 pass
             elif x + y + z == 0:
-                self.grid[(x, y, z)] = Node('e', (x, y, z))
+                self.grid[(x, y, z)] = Node(0, (x, y, z))
 
-    def playRandomly(self, numMoves=1):
-        for i in range(numMoves):
-            legalMoves = self.getLegalMoves()
-            if len(legalMoves) > 0:
-                move = random.choice(legalMoves)
-                self.makeMove(self.curTurn, move)
-            else:
-                break
+        #randomly select 5 special cells for tie break
+        self.specialCells = random.sample(self.grid)
+        for cell in specialCells:
+            cell.special = True
 
     def getNeighbors(self, coord):
         (x, y, z) = coord
@@ -58,34 +103,13 @@ class Game:
             out.remove(coord)
         return out
 
-    def getLegalMoves(self):
-        legal_moves = []
-        for coord in self.grid:
-            if self.grid[coord].color == 'e':
-                legal_moves.append(coord)
-        return legal_moves
-
-    def makeMove(self, col, coord):
-        if self.curTurn == col and self.grid[coord].color == 'e':
-            self.grid[coord].color = col
-            self.movesLeft -= 1
-        else:
-            message = "color: " + col + " coord: " + str(coord)
-            message += " expected col: " + self.curTurn
-            message += " coord contains: " + self.grid[coord].color
-            raise Exception(message)
-        if self.movesLeft < 1:
-            #change current player's color
-            self.curTurn = 'w' if self.curTurn == 'b' else 'b'
-            self.movesLeft = self.movesPerTurn
-
-    def calculatePoints(self, iters=10):
+    def computeScore(self, iters=10):
         for coord in self.grid:
             self.grid[coord].tmpCol = self.grid[coord].color
 
         finished = False
         while iters > 0 and not finished:
-            print iters
+            finished = True
             iters -= 1
             numWhiteGroups = 0
             numBlackGroups = 0
@@ -95,87 +119,71 @@ class Game:
                 self.grid[coord].group = -10
 
             #add all white and black nodes to a group
+            numGroups[0, 0, 0]
             fin = False
             while fin == False:
                 fin = True
                 for coord in self.grid:
-                    if self.grid[coord].group == -10:
-                        if self.grid[coord].tmpCol == 'w':
-                            self.explore(coord, numWhiteGroups)
-                            numWhiteGroups += 1
-                            fin = False
-                        elif self.grid[coord].tmpCol == 'b':
-                            self.explore(coord, numBlackGroups)
-                            numBlackGroups += 1
-                            fin = False
-
+                    if self.grid[coord].group == -10 and self.grid[coord].tmpCol > 0:
+                        self.explore(coord, numGroups[self.grid[coord].tmpCol])
+                        numGroups[self.grid[coord].tmpCol] += 1
+                        fin = False
 
             #count how many edge nodes are in each group
-            numEdgeNodesInWGroup = dict()
-            numEdgeNodesInBGroup = dict()
+            numEdgeNodes = [[0 for i in range(numGroups[1])], [0 for i in range(numGroups[2])]]
             edgeNodes = self.getEdgeNodes()
 
             #go through all the edge nodes and increment the number of edgeNodes for the respective group
             for edge in edgeNodes:
-                if self.grid[edge].tmpCol == 'w':
-                    if self.grid[edge].group < 0:
-                        raise Exception("unassigned group")
-                    if self.grid[edge].group in numEdgeNodesInWGroup:
-                        numEdgeNodesInWGroup[self.grid[edge].group] += 1
-                    else:
-                        numEdgeNodesInWGroup[self.grid[edge].group] = 1
-                elif self.grid[edge].tmpCol == 'b':
-                    if self.grid[edge].group < 0:
-                        raise Exception("unassigned group")
-                    if self.grid[edge].group in numEdgeNodesInBGroup:
-                        numEdgeNodesInBGroup[self.grid[edge].group] += 1
-                    else:
-                        numEdgeNodesInBGroup[self.grid[edge].group] = 1
+                if self.grid[edge].tmpCol > 0:
+                    numEdgeNodes[self.grid[edge].tmpCol][self.grid[edge].group] += 1
 
-            #turn all white groups with less than two edge nodes into a black group
-            finished = True
-            for gr in range(numWhiteGroups):
-                if gr not in numEdgeNodesInWGroup or numEdgeNodesInWGroup[gr] < 2:
-                    finished = False
-                    self.toggleGroupColor('w', gr)
+            for col in range(1,3):
+                for groupNum in numGroups[col]:
+                    if numEdgeNodes[col][groupNum] < 2:
+                        finished = False
+                        self.toggleGroupColor(col, gr)
 
-            #turn all black groups into white (similar to above)
-            for gr in range(numBlackGroups):
-                if gr not in numEdgeNodesInBGroup or numEdgeNodesInBGroup[gr] < 2:
-                    finished = False
-                    self.toggleGroupColor('b', gr)
-
-        self.numWhiteGroups = numWhiteGroups
-        self.numBlackGroups = numBlackGroups
         #calculate final score
-        if finished:
-            #game ramains stable after two iterations
-            whiteScore = 0
-            blackScore = 0
-            edgeNodes = self.getEdgeNodes()
-            for edge in edgeNodes:
-                if self.grid[edge].tmpCol == 'w':
-                    whiteScore += 1
-                elif self.grid[edge].tmpCol == 'b':
-                    blackScore += 1
-                else:
-                    #edges not filled, not finished
-                    return (0, 0)
-            self.blackScore = blackScore
-            self.whiteScore = whiteScore
-            blackReward = (numWhiteGroups - numBlackGroups)*2
-            whiteReward = -blackReward
-            self.blackTotal = blackScore + blackReward
-            self.whiteTotal = whiteScore + whiteReward
-        else:
-            self.blackTotal = 0
-            self.whiteTotal = 0
+        if not finished:
+            raise Exception("not finished")
+
+        edgeScore = [0, 0, 0]
+        edgeNodes = self.getEdgeNodes()
+        for edge in edgeNodes:
+            if self.grid[edge].tmpCol > 0:
+                edgeScore[self.grid[edge].tmpCol] += 1
+            else:
+                #edges not filled, not finished
+                return
+        reward = [0, 0, 0]
+        reward[1] = (numGroups[2] - numGroups[1])*2
+        reward[2] = -reward[1]
+
+        totalScore = [0, 0, 0]
+        for i in range(3):
+            totalScore[i] = edgeScore[i] + reward[i]
+
+        bonus = [0, 0, 0]
+        if totalScore[1] == totalScore[2]:
+            for cell in self.specialCells:
+                bonus[self.specialCells.tmpCol] += 1
+            if bonus[1] > bonus[2]:
+                totalScore[1] += 1
+            else:
+                totalScore[2] += 1
+
+        scoreOut = dict()
+        scoreOut["winner"] = 1 if totalScore[1] > totalScore[2] else 2
+        scoreOut["edgeScore"] = edgeScore
+        scoreOut["reward"] = reward
+        scoreOut["bonus"] = bonus
+        return scoreOut
 
     def toggleGroupColor(self, col, groupNum):
         for coord in self.grid:
             if self.grid[coord].group == groupNum and self.grid[coord].tmpCol == col:
-                self.grid[coord].tmpCol = 'b' if col == 'w' else 'w'
-                self.grid[coord].group = -1
+                self.grid[coord].tmpCol = 3 - self.grid[coord].tmpCol
 
     def getEdgeNodes(self):
         return [(x, y, z) for (x, y, z) in self.grid if max(abs(x), abs(y), abs(z)) == self.radius]
@@ -191,36 +199,3 @@ class Game:
             neigh = self.getNeighbors(coord)
             for n in neigh:
                 if self.grid[n].group == -10 and self.grid[n].tmpCol == col and n not in stack: stack.append(n)
-
-def getDiagnostic(grid):
-    diagnostic = ""
-    for (x, y, z) in grid:
-        if grid[(x, y, z)].tmpCol == 'w':
-            diagnostic += 'context.fillStyle="red";\n'
-        elif grid[(x, y, z)].tmpCol == 'b':
-            diagnostic += 'context.fillStyle="blue";\n'
-        diagnostic += 'drawCell('+str(x)+','+str(y)+','+str(z)+',20);\n'
-    return diagnostic
-
-def findProblematicGame(iters):
-    for i in range(1, 20):
-        g = Game(i)
-        print i, len(g.grid)
-    maxgame = None
-    maxiters = 0
-    for i in range(iters):
-        g = Game(11)
-        curiters = numItersUntilStable(g)
-        if curiters > maxiters:
-            maxiters = curiters
-            maxgame = g
-    return maxgame
-
-def numItersUntilStable(g):
-    res = (0, 0)
-    iters = 0
-    while res == (0, 0):
-        iters += 1
-        g.playRandomly(1000)
-        res = g.calculatePoints(iters)
-    return iters
