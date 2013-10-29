@@ -52,8 +52,6 @@ class commandHandler:
     def gamestate(self, sess, inp):
         g = self.getGame(sess)
         gameInfo = dict()
-        gameInfo["boardSize"] = g.radius
-        gameInfo["curTurn"] = g.curTurn
         cellArray = []
         for (x, y, z) in g.grid:
             cellArray.append(x)
@@ -61,20 +59,17 @@ class commandHandler:
             cellArray.append(z)
             cellArray.append(g.grid[(x,y,z)].color)
         gameInfo["cells"] = cellArray
-        gameInfo["state"] = "normal"
+        gameInfo["boardSize"] = g.radius
+        gameInfo["curTurn"] = g.w if g.curTurn == 'w' else g.b
+        gameInfo["movesLeft"] = g.movesLeft
+        gameInfo["w_timeLeft"] = "11:35"
+        gameInfo["b_timeLeft"] = "14:39"
+        gameInfo["w_name"] = g.w
+        gameInfo["b_name"] = g.b
         if g.state == "score":
-            groups = []
-            for (x, y, z) in g.grid:
-                groups.append(x)
-                groups.append(y)
-                groups.append(z)
-                groups.append(g.grid[(x,y,z)].tmpCol)
-            gameInfo["whiteGroups"] = g.numWhiteGroups
-            gameInfo["blackGroups"] = g.numBlackGroups
-            gameInfo["blackScore"] = g.blackScore
-            gameInfo["whiteScore"] = g.whiteScore
-            gameInfo["groups"] = groups
-            gameInfo["state"] = "score"
+            gameInfo["score"] = g.b
+
+
         return json.dumps(gameInfo)
 
     def getgames(self, sess, inp):
@@ -87,7 +82,7 @@ class commandHandler:
         global games
         gname = web.input().gname
         if gname not in games:
-            g = starLogic.Game(5)
+            g = starLogic.Game(9)
             g.b = sess.username
             g.w = None
             games[gname] = g
@@ -103,6 +98,9 @@ class commandHandler:
                 g.w = sess.username
                 sess.location = "game"
                 sess.gname = gname
+                if random.randint(0, 1) == 0:
+                    g.w, g.b = g.b, g.w
+                g.state="started"
         except KeyError:
             pass
 
@@ -111,26 +109,13 @@ class command:
         global sessions
         inp = web.input()
         sessionID = web.cookies().get('sessionID')
-        sess = sessions[sessionID]
-        ch = commandHandler()
-
-        return getattr(ch, inp.cmd_text)(sess, inp)
-
-class joingame:
-    def GET(self):
-        global sessions
-        global games
-        sessionID = web.cookies().get('sessionID')
-        sess = sessions[sessionID]
-        gname = web.input().gname
         try:
-            g = games[gname]
-            g.w = sess.username
-            sess.location = "game"
-            sess.gname = gname
-            return render.star()
+            sess = sessions[sessionID]
         except KeyError:
-            return "game does not exist"
+            web.setcookie('sessionID', '', -1)
+            return render.login()
+        ch = commandHandler()
+        return getattr(ch, inp.cmd_text)(sess, inp)
 
 class index:
     def GET(self):
@@ -161,8 +146,6 @@ class login_action:
 class star:
     def GET(self):
         return render.star()
-
-
 
 if __name__ == "__main__":
     app = web.application(urls, globals())

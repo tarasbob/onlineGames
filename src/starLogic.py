@@ -18,7 +18,7 @@ class Game:
         self.numBlackGroups = 0
         self.blackScore = 0
         self.whiteScore = 0
-        self.state = "normal"
+        self.state = "created"
 
     def newGame(self, radius=11):
         self.radius = radius
@@ -27,7 +27,6 @@ class Game:
         self.movesPerTurn = 2
         self.curTurn = 'b'
         self.movesLeft = 1
-        self.state = "normal"
 
         for (x, y, z) in itertools.product(range(-self.radius, self.radius+1), repeat=3):
             if x == y == z == 0:
@@ -145,7 +144,6 @@ class Game:
                 if gr not in numEdgeNodesInBGroup or numEdgeNodesInBGroup[gr] < 2:
                     finished = False
                     self.toggleGroupColor('b', gr)
-
 
         self.numWhiteGroups = numWhiteGroups
         self.numBlackGroups = numBlackGroups
