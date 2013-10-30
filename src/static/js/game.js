@@ -32,27 +32,42 @@
             window.context.fillStyle = window.background_col;
             window.context.fill();
             //Update Player Names
-            $("#b_player").text(data.b_name);
-            $("#w_player").text(data.w_name);
-            //Update the times 
-            $("#b_time").text(data.b_timeLeft);
-            $("#w_time").text(data.w_timeLeft);
+            if(data.state == "playing"){
+                $("#b_player").text(data.first_name);
+                $("#w_player").text(data.second_name);
+            }
             //update the status
             $("#status").text(data.curTurn + " has " + data.movesLeft + " move(s) left");
             //draw the cells
             for(var i = 0; i<data.cells.length/4; i++){
-                x = data.cells[i*4+0];
-                y = data.cells[i*4+1];
-                z = data.cells[i*4+2];
-                col = data.cells[i*4+3];
-                if(col == 'e')
-                    window.context.fillStyle=window.colBlank;
-                else if(col == 'b')
-                    window.context.fillStyle=window.colb;
-                else if(col == 'w')
-                    window.context.fillStyle=window.colw;
+                if(data.cells[i*4+0] == "s"){
+                    x = data.cells[(i-1)*4+0];
+                    y = data.cells[(i-1)*4+1];
+                    z = data.cells[(i-1)*4+2];
+                    col = data.cells[(i-1)*4+3];
+                    if(col == 0)
+                        window.context.fillStyle=window.colb;
+                    else if(col == 1)
+                        window.context.fillStyle=window.colw;
+                    else if(col == 2)
+                        window.context.fillStyle=window.colb;
 
-                drawCell(x, y, z, window.cellSize);
+                    drawCell(x, y, z, window.cellSize);
+
+                } else { 
+                    x = data.cells[i*4+0];
+                    y = data.cells[i*4+1];
+                    z = data.cells[i*4+2];
+                    col = data.cells[i*4+3];
+                    if(col == 0)
+                        window.context.fillStyle=window.colBlank;
+                    else if(col == 1)
+                        window.context.fillStyle=window.colb;
+                    else if(col == 2)
+                        window.context.fillStyle=window.colw;
+
+                    drawCell(x, y, z, window.cellSize);
+                }
             }
         }, "json");
     }

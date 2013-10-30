@@ -14,8 +14,6 @@ class Node:
 
 class Game:
     def __init__(self, boardRadius=11):
-        self.baseTime = baseTime
-        self.addTime = addTime
         self.board = GameBoard(boardRadius)
         self.state = "waiting"
         self.players = []
@@ -34,9 +32,10 @@ class Game:
                 self.startGame()
 
     def startGame(self):
-        random.shuffle(players)
-        self.pieceColor[players[0]] = 1
-        self.pieceColor[players[1]] = 2
+        random.shuffle(self.players)
+        self.pieceColor = dict()
+        self.pieceColor[self.players[0]] = 1
+        self.pieceColor[self.players[1]] = 2
         self.state = "playing"
 
     def doMove(self, playerName, location):
@@ -47,14 +46,14 @@ class Game:
             return
         if moveColor != self.curTurn:
             return
+        if self.state != "playing":
+            return
         self.moveHistory.append((playerName, location))
         if location == "pass":
             if len(self.moveHistory) > 1 and self.moveHistory[-1][1] == "pass" and self.moveHistory[-2][1] == "pass":
                 #both passed, calculate score
-                result = self.board.computeScore()
-                if result:
-                    self.state = "finished"
-                    self.winner = self.players[result["winner"]]
+                self.state = "finished"
+                self.result = self.board.computeScore()
             else:
                 self.curTurn = 3 - self.curTurn
                 self.movesLeft = self.movesPerTurn
@@ -85,9 +84,9 @@ class GameBoard:
                 self.grid[(x, y, z)] = Node(0, (x, y, z))
 
         #randomly select 5 special cells for tie break
-        self.specialCells = random.sample(self.grid)
-        for cell in specialCells:
-            cell.special = True
+        self.specialCells = random.sample(self.grid, 5)
+        for cell in self.specialCells:
+            self.grid[cell].special = True
 
     def getNeighbors(self, coord):
         (x, y, z) = coord
@@ -148,6 +147,8 @@ class GameBoard:
         if not finished:
             raise Exception("not finished")
 
+        scoreOut = dict()
+
         edgeScore = [0, 0, 0]
         edgeNodes = self.getEdgeNodes()
         for edge in edgeNodes:
@@ -155,7 +156,12 @@ class GameBoard:
                 edgeScore[self.grid[edge].tmpCol] += 1
             else:
                 #edges not filled, not finished
-                return
+                scoreOut["winner"] = 2
+                scoreOut["edgeScore"] = [0, 0, 1]
+                scoreOut["reward"] = [0, 0, 1]
+                scoreOut["bonus"] = [0, 0, 1]
+                scoreOut["finCells"] = dict()
+                return scoreOut
         reward = [0, 0, 0]
         reward[1] = (numGroups[2] - numGroups[1])*2
         reward[2] = -reward[1]
@@ -173,11 +179,13 @@ class GameBoard:
             else:
                 totalScore[2] += 1
 
-        scoreOut = dict()
         scoreOut["winner"] = 1 if totalScore[1] > totalScore[2] else 2
         scoreOut["edgeScore"] = edgeScore
         scoreOut["reward"] = reward
         scoreOut["bonus"] = bonus
+        scoreOut["finCells"] = dict()
+        for coord in self.grid:
+            scoreOut["finCells"][coord] = self.grid[coord].tmpCol
         return scoreOut
 
     def toggleGroupColor(self, col, groupNum):

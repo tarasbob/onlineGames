@@ -32,49 +32,50 @@ class commandHandler:
 
     def makemove(self, sess, inp):
         g = self.getGame(sess)
-        if g.curTurn == 'w' and sess.username == g.w:
-            g.makeMove('w', (int(inp.x), int(inp.y), int(inp.z)))
-        elif g.curTurn == 'b' and sess.username == g.b:
-            g.makeMove('b', (int(inp.x), int(inp.y), int(inp.z)))
-
-    def randommove(self, sess, inp):
-        g.playRandomly(1000)
-
-    def newgame(self, sess):
-        g = self.getGame(sess)
-        g.newGame()
-
-    def calculatescore(self, sess, inp):
-        g = self.getGame(sess)
-        g.state = "score"
-        g.calculatePoints()
+        g.doMove(sess.username, (int(inp.x), int(inp.y), int(inp.z)))
 
     def gamestate(self, sess, inp):
         g = self.getGame(sess)
         gameInfo = dict()
         cellArray = []
-        for (x, y, z) in g.grid:
+        #transfer the board along with special cells
+        for (x, y, z) in g.board.grid:
             cellArray.append(x)
             cellArray.append(y)
             cellArray.append(z)
-            cellArray.append(g.grid[(x,y,z)].color)
+            cellArray.append(g.board.grid[(x,y,z)].color)
+            if (x, y, z) in g.board.specialCells:
+                cellArray.append('s')
+                cellArray.append('s')
+                cellArray.append('s')
+                cellArray.append('s')
+
+
         gameInfo["cells"] = cellArray
-        gameInfo["boardSize"] = g.radius
-        gameInfo["curTurn"] = g.w if g.curTurn == 'w' else g.b
+        gameInfo["state"] = g.state
+        gameInfo["boardSize"] = g.board.radius
+        gameInfo["curTurn"] = g.players[g.curTurn-1]
         gameInfo["movesLeft"] = g.movesLeft
-        gameInfo["w_timeLeft"] = "11:35"
-        gameInfo["b_timeLeft"] = "14:39"
-        gameInfo["w_name"] = g.w
-        gameInfo["b_name"] = g.b
-        if g.state == "score":
-            gameInfo["score"] = g.b
-
-
+        gameInfo["first_name"] = g.players[0]
+        if g.state == "playing":
+            gameInfo["second_name"] = g.players[1]
+        if g.state == "finished":
+            gameInfo["winner"] = g.players[g.result["winner"]]
+            gameInfo["edgeScore"] = g.result["edgeScore"]
+            gameInfo["reward"] = g.result["reward"]
+            gameInfo["bonus"] = g.result["bonus"]
+            finCells = []
+            for (x, y, z) in g.result["finCells"]:
+                finCells.append(x)
+                finCells.append(y)
+                finCells.append(z)
+                finCells.append(g.result["finCells"][(x, y, z)])
+            gameInfo["finCells"] = finCells
         return json.dumps(gameInfo)
 
     def getgames(self, sess, inp):
         result = dict()
-        waitingGames = [gname for gname in games if not games[gname].w]
+        waitingGames = [gname for gname in games if games[gname].state == "waiting"]
         result["waitingGames"] = waitingGames
         return json.dumps(result)
 
@@ -83,8 +84,7 @@ class commandHandler:
         gname = web.input().gname
         if gname not in games:
             g = starLogic.Game(9)
-            g.b = sess.username
-            g.w = None
+            g.addPlayer(sess.username)
             games[gname] = g
             sess.location = "game"
             sess.gname = gname
@@ -94,13 +94,10 @@ class commandHandler:
         gname = web.input().gname
         try:
             g = games[gname]
-            if not g.w:
-                g.w = sess.username
+            if g.state == "waiting":
+                g.addPlayer(sess.username)
                 sess.location = "game"
                 sess.gname = gname
-                if random.randint(0, 1) == 0:
-                    g.w, g.b = g.b, g.w
-                g.state="started"
         except KeyError:
             pass
 
@@ -126,7 +123,7 @@ class index:
         except KeyError:
             sess = Session()
             sessions[sess.sessionID] = sess
-            web.setcookie('sessionID', sess.sessionID, 3600)
+            web.setcookie('sessionID', sess.sessionID, 36000)
         if sess.location == "login":
             return render.login()
         if sess.location == "lobby":
@@ -142,10 +139,6 @@ class login_action:
         sess.username = web.input().username
         sess.location = "lobby"
         return render.lobby()
-
-class star:
-    def GET(self):
-        return render.star()
 
 if __name__ == "__main__":
     app = web.application(urls, globals())
