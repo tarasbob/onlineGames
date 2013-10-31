@@ -21,6 +21,7 @@ class Game:
         self.movesLeft = 1
         self.movesPerTurn = 2
         self.moveHistory = []
+        self.result = None
 
     def addPlayer(self, playerName):
         """
@@ -44,6 +45,9 @@ class Game:
         except KeyError:
             #PlayerName is not in this game
             return
+        except AttributeError:
+            #game has not started yet
+            return
         if moveColor != self.curTurn:
             return
         if self.state != "playing":
@@ -53,6 +57,7 @@ class Game:
             if len(self.moveHistory) > 1 and self.moveHistory[-1][1] == "pass" and self.moveHistory[-2][1] == "pass":
                 #both passed, calculate score
                 self.state = "finished"
+                print "game finished"
                 self.result = self.board.computeScore()
             else:
                 self.curTurn = 3 - self.curTurn
@@ -62,9 +67,11 @@ class Game:
             self.state = "finished"
             self.winner = self.players[0] if self.players[0] != playerName else self.players[1]
             return
-        if self.board.grid[location] != 0:
+        if self.board.grid[location].color != 0:
+            print "location not empty"
             return
-        self.board.grid[location] = moveColor
+        print "perform the move"
+        self.board.grid[location].color = moveColor
         self.moveHistory.append((playerName, location))
         self.movesLeft -= 1
         if self.movesLeft == 0:
@@ -103,12 +110,14 @@ class GameBoard:
         return out
 
     def computeScore(self, iters=10):
+        print "computing score"
         for coord in self.grid:
             self.grid[coord].tmpCol = self.grid[coord].color
 
         finished = False
         while iters > 0 and not finished:
             finished = True
+            print iters
             iters -= 1
             numWhiteGroups = 0
             numBlackGroups = 0
@@ -118,7 +127,7 @@ class GameBoard:
                 self.grid[coord].group = -10
 
             #add all white and black nodes to a group
-            numGroups[0, 0, 0]
+            numGroups = [0, 0, 0]
             fin = False
             while fin == False:
                 fin = True
@@ -129,7 +138,8 @@ class GameBoard:
                         fin = False
 
             #count how many edge nodes are in each group
-            numEdgeNodes = [[0 for i in range(numGroups[1])], [0 for i in range(numGroups[2])]]
+            numEdgeNodes = [None, [0 for i in range(numGroups[1])], [0 for i in range(numGroups[2])]]
+            print numEdgeNodes
             edgeNodes = self.getEdgeNodes()
 
             #go through all the edge nodes and increment the number of edgeNodes for the respective group
@@ -137,18 +147,22 @@ class GameBoard:
                 if self.grid[edge].tmpCol > 0:
                     numEdgeNodes[self.grid[edge].tmpCol][self.grid[edge].group] += 1
 
+            #toggle the group colors
+            print numGroups
+            print numEdgeNodes
             for col in range(1,3):
-                for groupNum in numGroups[col]:
+                for groupNum in range(numGroups[col]):
+                    print col, groupNum
                     if numEdgeNodes[col][groupNum] < 2:
                         finished = False
-                        self.toggleGroupColor(col, gr)
+                        self.toggleGroupColor(col, groupNum)
 
         #calculate final score
         if not finished:
             raise Exception("not finished")
 
         scoreOut = dict()
-
+        print "score out ready"
         edgeScore = [0, 0, 0]
         edgeNodes = self.getEdgeNodes()
         for edge in edgeNodes:
@@ -172,8 +186,8 @@ class GameBoard:
 
         bonus = [0, 0, 0]
         if totalScore[1] == totalScore[2]:
-            for cell in self.specialCells:
-                bonus[self.specialCells.tmpCol] += 1
+            for coord in self.specialCells:
+                bonus[self.grid[coord].tmpCol] += 1
             if bonus[1] > bonus[2]:
                 totalScore[1] += 1
             else:

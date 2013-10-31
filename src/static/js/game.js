@@ -20,6 +20,8 @@
 
     window.cellSize = 10;
 
+    window.view = "normal"
+
 
     function refreshBoard(){
         $.get("command", {"cmd_text": "gamestate"}, function(data){
@@ -41,6 +43,7 @@
             //draw the cells
             for(var i = 0; i<data.cells.length/4; i++){
                 if(data.cells[i*4+0] == "s"){
+                    //handle the specially marked cells
                     x = data.cells[(i-1)*4+0];
                     y = data.cells[(i-1)*4+1];
                     z = data.cells[(i-1)*4+2];
@@ -52,13 +55,39 @@
                     else if(col == 2)
                         window.context.fillStyle=window.colb;
 
-                    drawCell(x, y, z, window.cellSize);
+                    drawCircle(x, y, z, window.cellSize);
 
                 } else { 
+                    //handle all the cells
                     x = data.cells[i*4+0];
                     y = data.cells[i*4+1];
                     z = data.cells[i*4+2];
                     col = data.cells[i*4+3];
+                    if(col == 0)
+                        window.context.fillStyle=window.colBlank;
+                    else if(col == 1)
+                        window.context.fillStyle=window.colb;
+                    else if(col == 2)
+                        window.context.fillStyle=window.colw;
+
+                    drawCell(x, y, z, window.cellSize);
+                }
+            }
+            if(window.view == "score"){
+                var statusText = "";
+                statusText += "winner: " + data.winner + "<br>";
+                statusText += "edge score 1: " + data.edgeScore[1] + "<br>";
+                statusText += "edge score 2: " + data.edgeScore[2] + "<br>";
+                statusText += "reward 1: " + data.reward[1] + "<br>";
+                statusText += "reward 2: " + data.reward[2] + "<br>";
+                statusText += "bonus 1: " + data.bonus[1] + "<br>";
+                statusText += "bonus 2: " + data.bonus[2] + "<br>";
+                $("#status").text(statusText);
+                for(var i=0; i<data.finCells.length/4; i++){
+                    x = data.finCells[i*4+0];
+                    y = data.finCells[i*4+1];
+                    z = data.finCells[i*4+2];
+                    col = data.finCells[i*4+3];
                     if(col == 0)
                         window.context.fillStyle=window.colBlank;
                     else if(col == 1)
@@ -87,15 +116,27 @@
         var centerY = window.c.height/2;
         coord = getHex(e.offsetX-centerX, e.offsetY-centerY, window.cellSize);
         $.get(
-            "command", { "cmd_text": "makemove", "x": coord[0], "y": coord[1], "z": coord[2] }
-        );
+            "command", { "cmd_text": "makemove", "x": coord[0], "y": coord[1], "z": coord[2] });
     }, false);
 
-    $("#calculatescore").click(function(){
-        $.get("command", {"cmd_text": "calculatescore"}, function(data){
-            $("#bscore").text(data.black);
-            $("#wscore").text(data.white);
-        }, "json");
+    $("#btn_pass").click(function(){
+        $.get("command", {"cmd_text": "makemove", "x": "pass"});
+    });
+
+    $("#btn_resign").click(function(){
+        $.get("command", {"cmd_text": "makemove", "x": "resign"});
+    });
+
+    $("#btn_close").click(function(){
+        $.get("command", {"cmd_text": "close"});
+    });
+
+    $("#btn_toggle").click(function(){
+        if(window.view == "normal"){
+            window.view = "score";
+        }else{
+            window.view = "normal";
+        }
     });
 
     function getHex(xPos, yPos, size){
@@ -151,11 +192,11 @@
         var centerY = window.c.height/2;
         var realX = centerX+size*Math.sqrt(3)*(x+z/2);
         var realY = centerY+(3/2)*z*size;
-        context.beginPath();
-        context.arc(realX, realY, size/2, 0, 2*Math.PI, false);
-        context.closePath();
-        context.stroke();
-        context.fill();
+        window.context.beginPath();
+        window.context.arc(realX, realY, size/2, 0, 2*Math.PI, false);
+        window.context.closePath();
+        window.context.strokeStyle = window.background_col;
+        window.context.stroke();
     }
 
     function drawHex(x, y, size){
@@ -169,7 +210,6 @@
             window.context.lineTo(xp, yp);
         }
         window.context.closePath();
-        window.context.strokeStyle="red";
         //window.context.stroke();
     }
 

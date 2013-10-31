@@ -24,7 +24,8 @@ class Session:
 class commandHandler:
     def getGame(self, sess):
         global games
-        return games[sess.gname]
+        if sess.gname in games:
+            return games[sess.gname]
 
     def logout(self, sess):
         global sessions
@@ -32,7 +33,14 @@ class commandHandler:
 
     def makemove(self, sess, inp):
         g = self.getGame(sess)
-        g.doMove(sess.username, (int(inp.x), int(inp.y), int(inp.z)))
+        if inp.x == "pass":
+            print "pass received"
+            g.doMove(sess.username, "pass")
+        elif inp.x == "resign":
+            print "resign received"
+            g.doMove(sess.username, "resign")
+        else:
+            g.doMove(sess.username, (int(inp.x), int(inp.y), int(inp.z)))
 
     def gamestate(self, sess, inp):
         g = self.getGame(sess)
@@ -60,7 +68,7 @@ class commandHandler:
         if g.state == "playing":
             gameInfo["second_name"] = g.players[1]
         if g.state == "finished":
-            gameInfo["winner"] = g.players[g.result["winner"]]
+            gameInfo["winner"] = g.result["winner"]
             gameInfo["edgeScore"] = g.result["edgeScore"]
             gameInfo["reward"] = g.result["reward"]
             gameInfo["bonus"] = g.result["bonus"]
@@ -83,7 +91,7 @@ class commandHandler:
         global games
         gname = web.input().gname
         if gname not in games:
-            g = starLogic.Game(9)
+            g = starLogic.Game(2)
             g.addPlayer(sess.username)
             games[gname] = g
             sess.location = "game"
