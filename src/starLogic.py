@@ -17,6 +17,7 @@ class Game:
         self.board = GameBoard(boardRadius)
         self.state = "waiting"
         self.players = []
+        self.numPlayers = 0
         self.curTurn = 1
         self.movesLeft = 1
         self.movesPerTurn = 2
@@ -29,6 +30,7 @@ class Game:
         """
         if self.state == "waiting":
             self.players.append(playerName)
+            self.numPlayers += 1
             if len(self.players) == 2:
                 self.startGame()
 
@@ -65,7 +67,9 @@ class Game:
             return
         if location == "resign":
             self.state = "finished"
-            self.winner = self.players[0] if self.players[0] != playerName else self.players[1]
+            self.result = dict()
+            self.result["type"] = "resign"
+            self.result["winner"] = 1 if self.players[0] != playerName else 2
             return
         if self.board.grid[location].color != 0:
             print "location not empty"
@@ -80,7 +84,7 @@ class Game:
 
 class GameBoard:
     def __init__(self, radius):
-        self.radius = radius
+        self.radius = min(15, max(2, radius))
         self.grid = dict()
 
         for (x, y, z) in itertools.product(range(-self.radius, self.radius+1), repeat=3):
@@ -162,6 +166,7 @@ class GameBoard:
             raise Exception("not finished")
 
         scoreOut = dict()
+        scoreOut["type"] = "score"
         print "score out ready"
         edgeScore = [0, 0, 0]
         edgeNodes = self.getEdgeNodes()

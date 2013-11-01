@@ -39,7 +39,7 @@
                 $("#w_player").text(data.second_name);
             }
             //update the status
-            $("#status").text(data.curTurn + " has " + data.movesLeft + " move(s) left");
+            $("#status").html("<p>" + data.curTurn + " has " + data.movesLeft + " move(s) left</p>");
             //draw the cells
             for(var i = 0; i<data.cells.length/4; i++){
                 if(data.cells[i*4+0] == "s"){
@@ -73,30 +73,34 @@
                     drawCell(x, y, z, window.cellSize);
                 }
             }
-            if(window.view == "score"){
+            if(window.view == "score" && data.state == "finished"){
                 var statusText = "";
-                statusText += "winner: " + data.winner + "<br>";
-                statusText += "edge score 1: " + data.edgeScore[1] + "<br>";
-                statusText += "edge score 2: " + data.edgeScore[2] + "<br>";
-                statusText += "reward 1: " + data.reward[1] + "<br>";
-                statusText += "reward 2: " + data.reward[2] + "<br>";
-                statusText += "bonus 1: " + data.bonus[1] + "<br>";
-                statusText += "bonus 2: " + data.bonus[2] + "<br>";
-                $("#status").text(statusText);
-                for(var i=0; i<data.finCells.length/4; i++){
-                    x = data.finCells[i*4+0];
-                    y = data.finCells[i*4+1];
-                    z = data.finCells[i*4+2];
-                    col = data.finCells[i*4+3];
-                    if(col == 0)
-                        window.context.fillStyle=window.colBlank;
-                    else if(col == 1)
-                        window.context.fillStyle=window.colb;
-                    else if(col == 2)
-                        window.context.fillStyle=window.colw;
+                if(data.type == "score"){
+                    statusText += "<p>winner: " + data.winner + "</p>";
+                    statusText += "<p>edge score 1: " + data.edgeScore[1] + "</p>";
+                    statusText += "<p>edge score 2: " + data.edgeScore[2] + "</p>";
+                    statusText += "<p>reward 1: " + data.reward[1] + "</p>";
+                    statusText += "<p>reward 2: " + data.reward[2] + "</p>";
+                    statusText += "<p>bonus 1: " + data.bonus[1] + "</p>";
+                    statusText += "<p>bonus 2: " + data.bonus[2] + "</p>";
+                    for(var i=0; i<data.finCells.length/4; i++){
+                        x = data.finCells[i*4+0];
+                        y = data.finCells[i*4+1];
+                        z = data.finCells[i*4+2];
+                        col = data.finCells[i*4+3];
+                        if(col == 0)
+                            window.context.fillStyle=window.colBlank;
+                        else if(col == 1)
+                            window.context.fillStyle=window.colb;
+                        else if(col == 2)
+                            window.context.fillStyle=window.colw;
 
-                    drawCell(x, y, z, window.cellSize);
+                        drawCell(x, y, z, window.cellSize);
+                    }
+                } else if(data.type == "resign"){
+                    statusText += "<p>winner: " + data.winner + "</p>";
                 }
+                $("#status").html(statusText);
             }
         }, "json");
     }
@@ -127,8 +131,9 @@
         $.get("command", {"cmd_text": "makemove", "x": "resign"});
     });
 
-    $("#btn_close").click(function(){
-        $.get("command", {"cmd_text": "close"});
+    $("#btn_lobby").click(function(){
+        $.get("command", {"cmd_text": "backToLobby"});
+        window.location = "/";
     });
 
     $("#btn_toggle").click(function(){

@@ -20,6 +20,7 @@ class Session:
         self.sessionID = "".join([random.choice("abcdefghijklmnopqrstuvwxyz1234567890") for i in range(50)])
         self.location = "login"
         self.username = ""
+        self.gname = ""
 
 class commandHandler:
     def getGame(self, sess):
@@ -27,9 +28,19 @@ class commandHandler:
         if sess.gname in games:
             return games[sess.gname]
 
-    def logout(self, sess):
+    def logout(self, sess, inp):
         global sessions
         sessions.pop(sess.sessionID)
+
+    def backToLobby(self, sess, inp):
+        global games
+        g = self.getGame(sess)
+        if g.state != "playing":
+            sess.location = "lobby"
+            sess.gname = ""
+            g.numPlayers -= 1
+            if g.numPlayers < 1:
+                del games['sess.gname']
 
     def makemove(self, sess, inp):
         g = self.getGame(sess)
@@ -69,16 +80,18 @@ class commandHandler:
             gameInfo["second_name"] = g.players[1]
         if g.state == "finished":
             gameInfo["winner"] = g.result["winner"]
-            gameInfo["edgeScore"] = g.result["edgeScore"]
-            gameInfo["reward"] = g.result["reward"]
-            gameInfo["bonus"] = g.result["bonus"]
-            finCells = []
-            for (x, y, z) in g.result["finCells"]:
-                finCells.append(x)
-                finCells.append(y)
-                finCells.append(z)
-                finCells.append(g.result["finCells"][(x, y, z)])
-            gameInfo["finCells"] = finCells
+            gameInfo["type"] = g.result["type"]
+            if g.result["type"] == "score":
+                gameInfo["edgeScore"] = g.result["edgeScore"]
+                gameInfo["reward"] = g.result["reward"]
+                gameInfo["bonus"] = g.result["bonus"]
+                finCells = []
+                for (x, y, z) in g.result["finCells"]:
+                    finCells.append(x)
+                    finCells.append(y)
+                    finCells.append(z)
+                    finCells.append(g.result["finCells"][(x, y, z)])
+                gameInfo["finCells"] = finCells
         return json.dumps(gameInfo)
 
     def getgames(self, sess, inp):
@@ -90,8 +103,9 @@ class commandHandler:
     def create(self, sess, inp):
         global games
         gname = web.input().gname
+        bsize = int(web.input().bsize)
         if gname not in games:
-            g = starLogic.Game(2)
+            g = starLogic.Game(bsize)
             g.addPlayer(sess.username)
             games[gname] = g
             sess.location = "game"

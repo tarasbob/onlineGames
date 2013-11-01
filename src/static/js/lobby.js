@@ -21,7 +21,9 @@
 
     $("#btn-create").click(function(){
         var gname = $("#description").val();
-        $.get("command", {"cmd_text": "create", "gname": gname}, function(){
+        var bsize = $("#bsize").val();
+        $.get("command", {"cmd_text": "create", 
+            "gname": gname, "bsize": bsize}, function(){
             window.location = "/";
         });
     });

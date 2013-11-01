@@ -1,20 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <title>Login Please</title>
-    </head>
-    <body>
-        <p>enter desired name</p>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="shortcut icon" href="static/ico/favicon.png">
 
-        <form name="login_form" action = "login_action" method="get">
-            Username: <input type="text" name="username">
-            <input type="submit" value="GO">
-        </form>
+    <title>Login Page</title>
 
-    </body>
+    <!-- Bootstrap core CSS -->
+    <link href="static/css/bootstrap.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="static/css/starter-template.css" rel="stylesheet">
+
+  </head>
+
+  <body>
+
+    <div class="container">
+
+    <h3>Pick a Name</h3>
+    <div class="col-lg-6">
+        <div class="input-group">
+            <input type="text" class="form-control" id="username" placeholder="Username">
+            <span class="input-group-btn">
+                <button id="btn_enter" class="btn btn-default" type="button">Enter</button>
+            </span>
+        </div><!-- /input-group -->
+    </div><!-- /.col-lg-6 -->
+		
+
+
+    </div><!-- /.container -->
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="static/js/jquery-2.0.3.min.js"></script>
+    <script src="static/js/bootstrap.min.js"></script>
+    <script src="static/js/login.js"></script>
+  </body>
 </html>
-
-        
-
-
