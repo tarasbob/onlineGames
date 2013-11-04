@@ -17,6 +17,7 @@
     window.special_colBlank_hover = "fff840";
 
     window.background_col = "2e2337";
+    window.canvSizeCoeff = 1.0;
 
     window.cellSize = 10;
 
@@ -105,14 +106,16 @@
         }, "json");
     }
     setInterval(refreshBoard, 500);
+    adjustCanvas();
 
     //set the color size of canvas at the beginning
-    window.c.width=$("#canv-div").width();
-    window.c.height=(Math.sqrt(3)/2) * window.c.width
+    function adjustCanvas(){
+        window.c.width=$("#canv-div").width()*window.canvSizeCoeff;
+        window.c.height=(Math.sqrt(3)/2) * window.c.width;
+    }
 
     $(window).resize(function() {
-        window.c.width=$("#canv-div").width();
-        window.c.height=(Math.sqrt(3)/2) * window.c.width
+        adjustCanvas();
     });
 
     c.addEventListener('click', function(e){
@@ -125,6 +128,11 @@
 
     $("#btn_pass").click(function(){
         $.get("command", {"cmd_text": "makemove", "x": "pass"});
+    });
+
+    $("#btn_smallerCanv").click(function(){
+        window.canvSizeCoeff = window.canvSizeCoeff * 0.95;
+        adjustCanvas();
     });
 
     $("#btn_resign").click(function(){
