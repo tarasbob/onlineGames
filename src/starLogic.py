@@ -76,7 +76,6 @@ class Game:
             return
         print "perform the move"
         self.board.grid[location].color = moveColor
-        self.moveHistory.append((playerName, location))
         self.movesLeft -= 1
         if self.movesLeft == 0:
             self.curTurn = 3 - self.curTurn
@@ -114,9 +113,12 @@ class GameBoard:
         return out
 
     def computeScore(self, iters=10):
-        print "computing score"
         for coord in self.grid:
-            self.grid[coord].tmpCol = self.grid[coord].color
+            if self.grid[coord].color == 0:
+                #if the cell is empty, put second player's stone there
+                self.grid[coord].tmpCol = 2
+            else:
+                self.grid[coord].tmpCol = self.grid[coord].color
 
         finished = False
         while iters > 0 and not finished:

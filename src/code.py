@@ -76,6 +76,16 @@ class commandHandler:
         gameInfo["curTurn"] = g.players[g.curTurn-1]
         gameInfo["movesLeft"] = g.movesLeft
         gameInfo["first_name"] = g.players[0]
+        gameInfo["lastTwoMoves"] = []
+        print g.moveHistory
+        if len(g.moveHistory) > 1:
+            locs = [g.moveHistory[-1][1], g.moveHistory[-2][1]]
+            if "pass" not in locs:
+                for (x, y, z) in locs:
+                    gameInfo["lastTwoMoves"].append(x)
+                    gameInfo["lastTwoMoves"].append(y)
+                    gameInfo["lastTwoMoves"].append(z)
+        print gameInfo["lastTwoMoves"]
         if g.state == "playing":
             gameInfo["second_name"] = g.players[1]
         if g.state == "finished":

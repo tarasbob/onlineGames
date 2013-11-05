@@ -56,6 +56,7 @@
                     else if(col == 2)
                         window.context.fillStyle=window.colb;
 
+                    window.context.strokeStyle = window.background_col;
                     drawCircle(x, y, z, window.cellSize);
 
                 } else { 
@@ -73,6 +74,13 @@
 
                     drawCell(x, y, z, window.cellSize);
                 }
+            }
+            for(var i=0; i<data.lastTwoMoves.length/3; i++){
+                x = data.lastTwoMoves[i*3+0];
+                y = data.lastTwoMoves[i*3+1];
+                z = data.lastTwoMoves[i*3+2];
+                window.context.strokeStyle = "ffffff"
+                drawCircle(x, y, z, window.cellSize);
             }
             if(window.view == "score" && data.state == "finished"){
                 var statusText = "";
@@ -208,7 +216,6 @@
         window.context.beginPath();
         window.context.arc(realX, realY, size/2, 0, 2*Math.PI, false);
         window.context.closePath();
-        window.context.strokeStyle = window.background_col;
         window.context.stroke();
     }
 
