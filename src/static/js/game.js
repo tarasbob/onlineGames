@@ -21,6 +21,8 @@
 
     window.cellSize = 10;
 
+    window.selectedCells = [];
+
     window.view = "normal"
 
 
@@ -71,7 +73,6 @@
                         window.context.fillStyle=window.colb;
                     else if(col == 2)
                         window.context.fillStyle=window.colw;
-
                     drawCell(x, y, z, window.cellSize);
                 }
             }
@@ -81,6 +82,11 @@
                 z = data.lastTwoMoves[i*3+2];
                 window.context.strokeStyle = "ffffff"
                 drawCircle(x, y, z, window.cellSize);
+            }
+            //display the currently selected moves
+            for(var i=0; i<Math.min(2, window.selectedCells.length); i++){
+                window.context.strokeStyle = "000f00"
+                drawCircle(window.selectedCells[i][0], window.selectedCells[i][1], window.selectedCells[i][2], window.cellSize);
             }
             if(window.view == "score" && data.state == "finished"){
                 var statusText = "";
@@ -130,8 +136,26 @@
         var centerX = window.c.width/2;
         var centerY = window.c.height/2;
         coord = getHex(e.offsetX-centerX, e.offsetY-centerY, window.cellSize);
-        $.get(
-            "command", { "cmd_text": "makemove", "x": coord[0], "y": coord[1], "z": coord[2] });
+        //accidental click protection
+        window.selectedCells.push(coord);
+        if(window.selectedCells.length >= 4){
+            if(isEqualCoord(window.selectedCells[0], window.selectedCells[2]) &&
+            isEqualCoord(window.selectedCells[1], window.selectedCells[3])){
+                $.get("command", { 
+                    "cmd_text": "makemove", 
+                    "x": window.selectedCells[0][0], 
+                    "y": window.selectedCells[0][1], 
+                    "z": window.selectedCells[0][2]
+                });
+                $.get("command", { 
+                    "cmd_text": "makemove", 
+                    "x": window.selectedCells[1][0], 
+                    "y": window.selectedCells[1][1], 
+                    "z": window.selectedCells[1][2]
+                });
+            }
+            window.selectedCells = [];
+        }
     }, false);
 
     $("#btn_pass").click(function(){
@@ -182,6 +206,16 @@
         }
 
         return [rx, ry, rz];
+    }
+
+    function isEqualCoord(c1, c2){
+        if(c1.length !== c2.length)
+            return false;
+        for(var i = 0; i < c1.length; i++){
+            if(c1[i] !== c2[i])
+                return false;
+        }
+        return true;
 
     }
 
