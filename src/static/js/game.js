@@ -267,5 +267,22 @@
         //window.context.stroke();
     }
 
-    });
+    $("#colorpicker1").spectrum(
+    {
+        color: "#f00",
+        move: function(color){
+            window.colb=color.toHexString();
+        }
+    }
+    );
+    $("#colorpicker2").spectrum(
+    {
+        color: "#f0f",
+        move: function(color){
+            window.colw=color.toHexString();
+        }
+    }
+    );
+
+});
 
