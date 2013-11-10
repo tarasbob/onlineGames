@@ -44,36 +44,30 @@
             //update the status
             $("#status").html("<p>" + data.curTurn + " has " + data.movesLeft + " move(s) left</p>");
             //draw the cells
-            for(var i = 0; i<data.cells.length/4; i++){
-                if(data.cells[i*4+0] == "s"){
-                    //handle the specially marked cells
-                    x = data.cells[(i-1)*4+0];
-                    y = data.cells[(i-1)*4+1];
-                    z = data.cells[(i-1)*4+2];
-                    col = data.cells[(i-1)*4+3];
-                    if(col == 0)
-                        window.context.fillStyle=window.colb;
-                    else if(col == 1)
-                        window.context.fillStyle=window.colw;
-                    else if(col == 2)
-                        window.context.fillStyle=window.colb;
-
+            for(var i = 0; i<data.cells.length/5; i++){
+                x = data.cells[i*5+0];
+                y = data.cells[i*5+1];
+                z = data.cells[i*5+2];
+                col = data.cells[i*5+3];
+                if(col == 0)
+                    window.context.fillStyle=window.colBlank;
+                else if(col == 1)
+                    window.context.fillStyle=window.colb;
+                else if(col == 2)
+                    window.context.fillStyle=window.colw;
+                drawCell(x, y, z, window.cellSize);
+                if(data.cells[i*5+4] == "b"){
+                    //both special and edge
+                    drawCircle(x, y, z, window.cellSize, 0.3);
                     window.context.strokeStyle = window.background_col;
-                    drawCircle(x, y, z, window.cellSize);
-
-                } else { 
-                    //handle all the cells
-                    x = data.cells[i*4+0];
-                    y = data.cells[i*4+1];
-                    z = data.cells[i*4+2];
-                    col = data.cells[i*4+3];
-                    if(col == 0)
-                        window.context.fillStyle=window.colBlank;
-                    else if(col == 1)
-                        window.context.fillStyle=window.colb;
-                    else if(col == 2)
-                        window.context.fillStyle=window.colw;
-                    drawCell(x, y, z, window.cellSize);
+                    drawHexInner(x, y, z, window.cellSize, 0.9);
+                } else if(data.cells[i*5+4] == "s"){
+                    //just special
+                    drawCircle(x, y, z, window.cellSize, 0.3);
+                } else if(data.cells[i*5+4] == "e"){
+                    //just edge
+                    window.context.strokeStyle = window.background_col;
+                    drawHexInner(x, y, z, window.cellSize, 0.9);
                 }
             }
             for(var i=0; i<data.lastTwoMoves.length/3; i++){
@@ -81,12 +75,12 @@
                 y = data.lastTwoMoves[i*3+1];
                 z = data.lastTwoMoves[i*3+2];
                 window.context.strokeStyle = "ffffff"
-                drawCircle(x, y, z, window.cellSize);
+                drawCircle(x, y, z, window.cellSize, 0.6);
             }
             //display the currently selected moves
             for(var i=0; i<Math.min(2, window.selectedCells.length); i++){
-                window.context.strokeStyle = "000f00"
-                drawCircle(window.selectedCells[i][0], window.selectedCells[i][1], window.selectedCells[i][2], window.cellSize);
+                window.context.strokeStyle = "000000"
+                drawCircle(window.selectedCells[i][0], window.selectedCells[i][1], window.selectedCells[i][2], window.cellSize, 0.6);
             }
             if(window.view == "score" && data.state == "finished"){
                 var statusText = "";
@@ -138,20 +132,13 @@
         coord = getHex(e.offsetX-centerX, e.offsetY-centerY, window.cellSize);
         //accidental click protection
         window.selectedCells.push(coord);
-        if(window.selectedCells.length >= 4){
-            if(isEqualCoord(window.selectedCells[0], window.selectedCells[2]) &&
-            isEqualCoord(window.selectedCells[1], window.selectedCells[3])){
+        if(window.selectedCells.length >= 2){
+            if(isEqualCoord(window.selectedCells[0], window.selectedCells[1])){
                 $.get("command", { 
                     "cmd_text": "makemove", 
                     "x": window.selectedCells[0][0], 
                     "y": window.selectedCells[0][1], 
                     "z": window.selectedCells[0][2]
-                });
-                $.get("command", { 
-                    "cmd_text": "makemove", 
-                    "x": window.selectedCells[1][0], 
-                    "y": window.selectedCells[1][1], 
-                    "z": window.selectedCells[1][2]
                 });
             }
             window.selectedCells = [];
@@ -242,13 +229,13 @@
         context.fillText(x.toString() + " " + y.toString() + " " + z.toString(), realX-10, realY);
     }
 
-    function drawCircle(x, y, z, size){
+    function drawCircle(x, y, z, size, coeff){
         var centerX = window.c.width/2;
         var centerY = window.c.height/2;
         var realX = centerX+size*Math.sqrt(3)*(x+z/2);
         var realY = centerY+(3/2)*z*size;
         window.context.beginPath();
-        window.context.arc(realX, realY, size/2, 0, 2*Math.PI, false);
+        window.context.arc(realX, realY, size*coeff, 0, 2*Math.PI, false);
         window.context.closePath();
         window.context.stroke();
     }
@@ -264,7 +251,15 @@
             window.context.lineTo(xp, yp);
         }
         window.context.closePath();
-        //window.context.stroke();
+    }
+
+    function drawHexInner(x, y, z, size, coeff){
+        var centerX = window.c.width/2;
+        var centerY = window.c.height/2;
+        var realX = centerX+size*Math.sqrt(3)*(x+z/2);
+        var realY = centerY+(3/2)*z*size;
+        drawHex(realX, realY, size*coeff);
+        window.context.stroke();
     }
 
     $("#colorpicker1").spectrum(

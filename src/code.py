@@ -58,17 +58,20 @@ class commandHandler:
         gameInfo = dict()
         cellArray = []
         #transfer the board along with special cells
+        edgeNodes = g.board.getEdgeNodes()
         for (x, y, z) in g.board.grid:
             cellArray.append(x)
             cellArray.append(y)
             cellArray.append(z)
             cellArray.append(g.board.grid[(x,y,z)].color)
-            if (x, y, z) in g.board.specialCells:
+            if (x, y, z) in g.board.specialCells and (x, y, z) in edgeNodes:
+                cellArray.append('b')
+            elif (x, y, z) in g.board.specialCells:
                 cellArray.append('s')
-                cellArray.append('s')
-                cellArray.append('s')
-                cellArray.append('s')
-
+            elif (x, y, z) in edgeNodes:
+                cellArray.append('e')
+            else:
+                cellArray.append(' ')
 
         gameInfo["cells"] = cellArray
         gameInfo["state"] = g.state
