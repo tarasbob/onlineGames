@@ -95,6 +95,7 @@ class commandHandler:
             gameInfo["winner"] = g.result["winner"]
             gameInfo["type"] = g.result["type"]
             if g.result["type"] == "score":
+                gameInfo["totalScore"] = g.result["totalScore"]
                 gameInfo["edgeScore"] = g.result["edgeScore"]
                 gameInfo["reward"] = g.result["reward"]
                 gameInfo["bonus"] = g.result["bonus"]

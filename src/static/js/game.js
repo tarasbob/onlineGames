@@ -55,37 +55,33 @@
                     window.context.fillStyle=window.colb;
                 else if(col == 2)
                     window.context.fillStyle=window.colw;
-                drawCell(x, y, z, window.cellSize);
+                drawCell(x, y, z);
                 if(data.cells[i*5+4] == "b"){
                     //both special and edge
-                    drawCircle(x, y, z, window.cellSize, 0.3);
-                    window.context.strokeStyle = window.background_col;
-                    drawHexInner(x, y, z, window.cellSize, 0.9);
+                    markSpecial(x, y, z);
+                    markEdge(x,y,z);
                 } else if(data.cells[i*5+4] == "s"){
-                    //just special
-                    drawCircle(x, y, z, window.cellSize, 0.3);
+                    markSpecial(x, y, z);
                 } else if(data.cells[i*5+4] == "e"){
                     //just edge
-                    window.context.strokeStyle = window.background_col;
-                    drawHexInner(x, y, z, window.cellSize, 0.9);
+                    markEdge(x,y,z);
                 }
             }
+            //draw the cell in the center
+            window.context.fillStyle="#e0e0e0";
+            drawCell(0, 0, 0);
             for(var i=0; i<data.lastTwoMoves.length/3; i++){
                 x = data.lastTwoMoves[i*3+0];
                 y = data.lastTwoMoves[i*3+1];
                 z = data.lastTwoMoves[i*3+2];
-                window.context.strokeStyle = "ffffff"
-                drawCircle(x, y, z, window.cellSize, 0.6);
-            }
-            //display the currently selected moves
-            for(var i=0; i<Math.min(2, window.selectedCells.length); i++){
-                window.context.strokeStyle = "000000"
-                drawCircle(window.selectedCells[i][0], window.selectedCells[i][1], window.selectedCells[i][2], window.cellSize, 0.6);
+                markLastMove(x, y, z);
             }
             if(window.view == "score" && data.state == "finished"){
                 var statusText = "";
                 if(data.type == "score"){
                     statusText += "<p>winner: " + data.winner + "</p>";
+                    statusText += "<p>score 1: " + data.totalScore[1] + "</p>";
+                    statusText += "<p>score 2: " + data.totalScore[2] + "</p>";
                     statusText += "<p>edge score 1: " + data.edgeScore[1] + "</p>";
                     statusText += "<p>edge score 2: " + data.edgeScore[2] + "</p>";
                     statusText += "<p>reward 1: " + data.reward[1] + "</p>";
@@ -104,7 +100,7 @@
                         else if(col == 2)
                             window.context.fillStyle=window.colw;
 
-                        drawCell(x, y, z, window.cellSize);
+                        drawCell(x, y, z);
                     }
                 } else if(data.type == "resign"){
                     statusText += "<p>winner: " + data.winner + "</p>";
@@ -171,9 +167,9 @@
         }
     });
 
-    function getHex(xPos, yPos, size){
-        var x = ((1/3)*Math.sqrt(3)*xPos - (1/3)*yPos) / size;
-        var z = (2/3)*yPos/size
+    function getHex(xPos, yPos){
+        var x = ((1/3)*Math.sqrt(3)*xPos - (1/3)*yPos) / window.cellSize;
+        var z = (2/3)*yPos/window.cellSize;
         var y = -x-z;
 
         rx = Math.round(x);
@@ -203,45 +199,44 @@
                 return false;
         }
         return true;
-
     }
 
-
-    function drawCell(x, y, z, size){
-        var centerX = window.c.width/2;
-        var centerY = window.c.height/2;
-        drawHex(centerX+size*Math.sqrt(3)*(x+z/2), centerY+(3/2)*z*size, size);
+    function drawCell(x, y, z){
+        coord = getRealCoord(x, y, z);
+        drawHex(coord.x, coord.y, 0.97);
         window.context.fill();
     }
 
-    function drawText(x, y, z, inp_text){
+    function getRealCoord(x, y, z){
+        coord = new Object();
         var centerX = window.c.width/2;
         var centerY = window.c.height/2;
-        var realX = centerX+cellSize*Math.sqrt(3)*(x+z/2);
-        var realY = centerY+(3/2)*z*cellSize;
-        context.font = "10px Arial";
-        disp_coord = "";
-        disp_coord.concat(x.toString());
-        disp_coord.concat(" ");
-        disp_coord.concat(y.toString());
-        disp_coord.concat(" ");
-        disp_coord.concat(z.toString());
-        context.fillText(x.toString() + " " + y.toString() + " " + z.toString(), realX-10, realY);
+        coord.x = centerX+window.cellSize*Math.sqrt(3)*(x+z/2);
+        coord.y = centerY+(3/2)*z*window.cellSize;
+        return coord;
     }
 
-    function drawCircle(x, y, z, size, coeff){
-        var centerX = window.c.width/2;
-        var centerY = window.c.height/2;
-        var realX = centerX+size*Math.sqrt(3)*(x+z/2);
-        var realY = centerY+(3/2)*z*size;
+    function drawCircle(x, y, z, coeff){
+        coord = getRealCoord(x, y, z);
         window.context.beginPath();
-        window.context.arc(realX, realY, size*coeff, 0, 2*Math.PI, false);
+        window.context.arc(coord.x, coord.y, window.cellSize*coeff, 0, 2*Math.PI, false);
         window.context.closePath();
+    }
+
+    function markLastMove(x, y, z){
+        drawCircle(x, y, z, 0.3);
+        window.context.fillStyle = "#ffffff";
+        window.context.fill();
+    }
+
+    function markSpecial(x, y, z){
+        drawCircle(x, y, z, 0.6);
+        window.context.stokeStyle = "#ff00ff";
         window.context.stroke();
     }
 
-    function drawHex(x, y, size){
-        size = size * 0.97;
+    function drawHex(x, y, coeff){
+        size = window.cellSize * coeff;
         window.context.beginPath();
 
         window.context.moveTo(x, y+size);
@@ -253,12 +248,9 @@
         window.context.closePath();
     }
 
-    function drawHexInner(x, y, z, size, coeff){
-        var centerX = window.c.width/2;
-        var centerY = window.c.height/2;
-        var realX = centerX+size*Math.sqrt(3)*(x+z/2);
-        var realY = centerY+(3/2)*z*size;
-        drawHex(realX, realY, size*coeff);
+    function markEdge(x, y, z){
+        coord = getRealCoord(x, y, z);
+        drawHex(coord.x, coord.y, 0.9);
         window.context.stroke();
     }
 

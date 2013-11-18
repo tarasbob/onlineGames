@@ -187,23 +187,24 @@ class GameBoard:
         reward[1] = (numGroups[2] - numGroups[1])*2
         reward[2] = -reward[1]
 
+        bonus = [0, 0, 0]
+        for coord in self.specialCells:
+            bonus[self.grid[coord].tmpCol] += 1
+        if bonus[1] > bonus[2]:
+            bonus = [0, 1, 0]
+        else:
+            bonus = [0, 0, 1]
+
         totalScore = [0, 0, 0]
         for i in range(3):
-            totalScore[i] = edgeScore[i] + reward[i]
+            totalScore[i] = edgeScore[i] + reward[i] + bonus[i]
 
-        bonus = [0, 0, 0]
-        if totalScore[1] == totalScore[2]:
-            for coord in self.specialCells:
-                bonus[self.grid[coord].tmpCol] += 1
-            if bonus[1] > bonus[2]:
-                totalScore[1] += 1
-            else:
-                totalScore[2] += 1
 
         scoreOut["winner"] = 1 if totalScore[1] > totalScore[2] else 2
         scoreOut["edgeScore"] = edgeScore
         scoreOut["reward"] = reward
         scoreOut["bonus"] = bonus
+        scoreOut["totalScore"] = totalScore
         scoreOut["finCells"] = dict()
         for coord in self.grid:
             scoreOut["finCells"][coord] = self.grid[coord].tmpCol
