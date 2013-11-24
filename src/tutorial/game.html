@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="shortcut icon" href="static/ico/favicon.png">
+
+    <title>Starter Template for Bootstrap</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="static/css/bootstrap.css" rel="stylesheet">
+    <link href="static/css/spectrum.css" rel="stylesheet">
+
+  </head>
+
+  <body>
+
+    <div class="container">
+        <div class="col-md-10" id="canv-div">
+            <canvas id="myCanvas"> </canvas>
+        </div>
+        <div class="col-md-2">
+            <h3 id="b_player">Player 1</h3>
+            <input id='colorpicker1' />
+            <h3 id="w_player">Player 2</h3>
+            <input id='colorpicker2' />
+            <hr>
+            <div id="status">Player 1 has 2 moves</div>
+            <hr>
+            <button type="button" id="btn_pass" class="btn btn-primary btn-block">Pass</button>
+            <button type="button" id="btn_resign" class="btn btn-primary btn-block">Resign</button>
+            <hr>
+            <button type="button" id="btn_lobby" class="btn btn-primary btn-block">Back To Lobby</button>
+            <button type="button" id="btn_toggle" class="btn btn-primary btn-block">Toggle View</button>
+            <hr>
+            <button type="button" id="btn_smallerCanv" class="btn btn-primary btn-block">Reduce Size</button>
+
+        </div>
+    </div><!-- /.container -->
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="static/js/jquery-2.0.3.min.js"></script>
+    <script src="static/js/bootstrap.min.js"></script>
+    <script src="static/js/spectrum.js"></script>
+    <script src="static/js/game.js"></script>
+  </body>
+</html>
