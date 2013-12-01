@@ -3,119 +3,93 @@
     window.context=c.getContext("2d");
 
     window.colw = "ff6400";
-    window.colw_hover = "a64100";
     window.colb= "00a383";
-    window.colb_hover = "006a55";
     window.colBlank = "fffa73";
-    window.colBlank_hover = "a69f00";
-
-    window.special_colw = "bf6830";
-    window.special_colw_hover = "ff8b40";
-    window.special_colb= "1f7a68";
-    window.special_colb_hover = "34d1b2";
-    window.special_colBlank = "bfba30";
-    window.special_colBlank_hover = "fff840";
-
     window.background_col = "2e2337";
+	
     window.canvSizeCoeff = 1.0;
 
     window.cellSize = 10;
-
     window.selectedCells = [];
-
+	
+	window.boardSize = 5;
     window.view = "normal"
-
+	
+	window.grid = {};
+	for(var i=-window.boardSize; i<=window.boardSize; i++){
+		for(var j=-window.boardSize; j<=window.boardSize; j++){
+			
+			var k = -j-i;
+			if(k <= window.boardSize && k >= -window.boardSize){
+				d = {};
+				if(Math.abs(i) == window.boardSize || Math.abs(j) == window.boardSize || Math.abs(k) == window.boardSize){
+					d['edge'] = 1;
+				} else {
+					d['edge'] = 0;
+				}
+				
+				if(i == 0 && j == 0 && k == 0){
+					d['center'] = 1;
+				} else {
+					d['center'] = 0;
+				}
+				
+				if(i == 2 && j == 1 && k == -3){
+					d['special'] = 1;
+				} else {
+					d['special'] = 0;
+				}
+				
+				d['state'] = 0;
+				
+				window.grid[''+i+':'+j] = d;
+			}
+		}
+	}
+	
 
     function refreshBoard(){
-        $.get("command", {"cmd_text": "gamestate"}, function(data){
-            //figure out the size of each cell
-            window.cellSize = window.c.width/(data.boardSize*4.3);
-            //set the background color
-            window.context.beginPath();
-            window.context.rect(0, 0, window.c.width, window.c.height);
-            window.context.closePath();
-            window.context.fillStyle = window.background_col;
-            window.context.fill();
-            //Update Player Names
-            if(data.state == "playing"){
-                $("#b_player").text(data.first_name);
-                $("#w_player").text(data.second_name);
-            }
-            //update the status
-            $("#status").html("<p>" + data.curTurn + " has " + data.movesLeft + " move(s) left</p>");
-            //draw the cells
-            for(var i = 0; i<data.cells.length/5; i++){
-                x = data.cells[i*5+0];
-                y = data.cells[i*5+1];
-                z = data.cells[i*5+2];
-                col = data.cells[i*5+3];
-                if(col == 0)
-                    window.context.fillStyle=window.colBlank;
-                else if(col == 1)
-                    window.context.fillStyle=window.colb;
-                else if(col == 2)
-                    window.context.fillStyle=window.colw;
-                drawCell(x, y, z);
-                if(data.cells[i*5+4] == "b"){
-                    //both special and edge
-                    markSpecial(x, y, z);
-                    markEdge(x,y,z);
-                } else if(data.cells[i*5+4] == "s"){
-                    markSpecial(x, y, z);
-                } else if(data.cells[i*5+4] == "e"){
-                    //just edge
-                    markEdge(x,y,z);
-                }
-            }
-            //draw the cell in the center
-            window.context.fillStyle="#e0e0e0";
-            drawCell(0, 0, 0);
-            for(var i=0; i<data.lastTwoMoves.length/3; i++){
-                x = data.lastTwoMoves[i*3+0];
-                y = data.lastTwoMoves[i*3+1];
-                z = data.lastTwoMoves[i*3+2];
-                markLastMove(x, y, z);
-            }
-            if(window.view == "score" && data.state == "finished"){
-                var statusText = "";
-                if(data.type == "score"){
-                    statusText += "<p>winner: " + data.winner + "</p>";
-                    statusText += "<p>score 1: " + data.totalScore[1] + "</p>";
-                    statusText += "<p>score 2: " + data.totalScore[2] + "</p>";
-                    statusText += "<p>edge score 1: " + data.edgeScore[1] + "</p>";
-                    statusText += "<p>edge score 2: " + data.edgeScore[2] + "</p>";
-                    statusText += "<p>reward 1: " + data.reward[1] + "</p>";
-                    statusText += "<p>reward 2: " + data.reward[2] + "</p>";
-                    statusText += "<p>bonus 1: " + data.bonus[1] + "</p>";
-                    statusText += "<p>bonus 2: " + data.bonus[2] + "</p>";
-                    for(var i=0; i<data.finCells.length/4; i++){
-                        x = data.finCells[i*4+0];
-                        y = data.finCells[i*4+1];
-                        z = data.finCells[i*4+2];
-                        col = data.finCells[i*4+3];
-                        if(col == 0)
-                            window.context.fillStyle=window.colBlank;
-                        else if(col == 1)
-                            window.context.fillStyle=window.colb;
-                        else if(col == 2)
-                            window.context.fillStyle=window.colw;
-
-                        drawCell(x, y, z);
-                    }
-                } else if(data.type == "resign"){
-                    statusText += "<p>winner: " + data.winner + "</p>";
-                }
-                $("#status").html(statusText);
-            }
-        }, "json");
+		//figure out the size of each cell
+		window.cellSize = window.c.width/(window.boardSize*4.8);
+		//set the background color
+		window.context.beginPath();
+		window.context.rect(0, 0, window.c.width, window.c.height);
+		window.context.closePath();
+		window.context.fillStyle = window.background_col;
+		window.context.fill();
+		//Update Player Names
+		
+		for(var i=-window.boardSize; i<=window.boardSize; i++){
+			for(var j=-window.boardSize; j<=window.boardSize; j++){
+				k = -j-i;
+				if(k <= window.boardSize && k >= -window.boardSize){
+					if(window.grid[''+i+':'+j].state == 0){
+						window.context.fillStyle=window.colBlank;
+					} else if(window.grid[''+i+':'+j].state == 1){
+						window.context.fillStyle=window.colb;
+					} else if(window.grid[''+i+':'+j].state == 2){
+						window.context.fillStyle=window.colw;
+					}
+					drawCell(i, j, k);
+					if(window.grid[''+i+':'+j].edge == 1){
+						markEdge(i, j, k);
+					}
+					if(window.grid[''+i+':'+j].center == 1){
+						markSpecial(i, j, k);
+					}
+				}
+			}
+		}
     }
-    setInterval(refreshBoard, 500);
+    //setInterval(refreshBoard, 500);
     adjustCanvas();
+	
 
     //set the color size of canvas at the beginning
     function adjustCanvas(){
         window.c.width=$("#canv-div").width()*window.canvSizeCoeff;
         window.c.height=(Math.sqrt(3)/2) * window.c.width;
+		refreshBoard()
     }
 
     $(window).resize(function() {
@@ -126,19 +100,8 @@
         var centerX = window.c.width/2;
         var centerY = window.c.height/2;
         coord = getHex(e.offsetX-centerX, e.offsetY-centerY, window.cellSize);
-        //accidental click protection
-        window.selectedCells.push(coord);
-        if(window.selectedCells.length >= 2){
-            if(isEqualCoord(window.selectedCells[0], window.selectedCells[1])){
-                $.get("command", { 
-                    "cmd_text": "makemove", 
-                    "x": window.selectedCells[0][0], 
-                    "y": window.selectedCells[0][1], 
-                    "z": window.selectedCells[0][2]
-                });
-            }
-            window.selectedCells = [];
-        }
+		window.grid[''+coord[0]+':'+coord[1]].state = 1;
+		refreshBoard()
     }, false);
 
     $("#btn_pass").click(function(){
