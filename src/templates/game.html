@@ -11,31 +11,86 @@
 
     <!-- Bootstrap core CSS -->
     <link href="static/css/bootstrap.css" rel="stylesheet">
+    <link href="static/css/game.css" rel="stylesheet">
     <link href="static/css/spectrum.css" rel="stylesheet">
 
   </head>
 
   <body>
 
+
+  <div class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+        </div>
+        <div class="collapse navbar-collapse">
+            <ul class="nav navbar-nav">
+                <li><a data-toggle="modal" href="#settings_modal">Settings</a></li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li><a id="logout" href="#">Log Out</a></li>
+                <li><a id="toLobby" href="#">Back To Lobby</a></li>
+            </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+
+    <div class="modal fade" id="settings_modal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h4 class="modal-title">Modal title</h4>
+          </div>
+          <div class="modal-body">
+            <button type="button" id="btn_toggle" class="btn btn-primary btn-block">Toggle View</button>
+            <p>player 1 color</p>
+            <input id='p1_colpicker' />
+            <p>player 2 color</p>
+            <input id='p2_colpicker' />
+            <p>Empty Cell color color</p>
+            <input id='empty_colpicker' />
+            <p>Background color</p>
+            <input id='background_colpicker' />
+            <p>Circles color</p>
+            <input id='circles_colpicker' />
+            <p>Last Move color</p>
+            <input id='last_colpicker' />
+            <p>Center Cell color</p>
+            <input id='center_colpicker' />
+            <button type="button" id="btn_smallerCanv" class="btn btn-primary btn-block">Reduce Canvas Size</button>
+            <button type="button" id="btn_largerCanv" class="btn btn-primary btn-block">Increase Canvas Size</button>
+            <button type="button" id="btn_smallerCell" class="btn btn-primary btn-block">Reduce Cell Size</button>
+            <button type="button" id="btn_largerCell" class="btn btn-primary btn-block">Increase Cell Size</button>
+            
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+    
+
     <div class="container">
         <div class="col-md-10" id="canv-div">
             <canvas id="myCanvas"> </canvas>
         </div>
         <div class="col-md-2">
-            <h3 id="b_player">Player 1</h3>
-            <input id='colorpicker1' />
-            <h3 id="w_player">Player 2</h3>
-            <input id='colorpicker2' />
-            <hr>
+            <h3 id="p1_name">Player 1</h3>
+            <h4 id="p1_time">15:14</h3>
+            <h3 id="p2_name">Player 1</h3>
+            <h4 id="p2_time">17:19</h3>
             <div id="status">Player 1 has 2 moves</div>
             <hr>
             <button type="button" id="btn_pass" class="btn btn-primary btn-block">Pass</button>
             <button type="button" id="btn_resign" class="btn btn-primary btn-block">Resign</button>
             <hr>
-            <button type="button" id="btn_lobby" class="btn btn-primary btn-block">Back To Lobby</button>
-            <button type="button" id="btn_toggle" class="btn btn-primary btn-block">Toggle View</button>
-            <hr>
-            <button type="button" id="btn_smallerCanv" class="btn btn-primary btn-block">Reduce Size</button>
 
         </div>
     </div><!-- /.container -->

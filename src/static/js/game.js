@@ -2,12 +2,16 @@
     window.c=document.getElementById("myCanvas");
     window.context=c.getContext("2d");
 
-    window.colw = "ff6400";
-    window.colb= "00a383";
-    window.colBlank = "fffa73";
-    window.background_col = "2e2337";
+    window.colw = "#ff6400";
+    window.colb= "#00a383";
+    window.colBlank = "#fffa73";
+    window.background_col = "#2e2337";
+    window.circles_col = "#2e2337";
+    window.lastmove_col = "#ffffff";
+    window.center_col = "#888888";
 	
     window.canvSizeCoeff = 1.0;
+    window.cellSizeCoeff = 0.2;
 
     window.cellSize = 10;
     window.selectedCells = [];
@@ -50,7 +54,7 @@
 
     function refreshBoard(){
 		//figure out the size of each cell
-		window.cellSize = window.c.width/(window.boardSize*4.8);
+		window.cellSize = window.cellSizeCoeff*(window.c.width/window.boardSize);
 		//set the background color
 		window.context.beginPath();
 		window.context.rect(0, 0, window.c.width, window.c.height);
@@ -58,6 +62,9 @@
 		window.context.fillStyle = window.background_col;
 		window.context.fill();
 		//Update Player Names
+        
+        $("#p1_name").css("color", window.colb);
+        $("#p2_name").css("color", window.colw);
 		
 		for(var i=-window.boardSize; i<=window.boardSize; i++){
 			for(var j=-window.boardSize; j<=window.boardSize; j++){
@@ -85,6 +92,7 @@
     adjustCanvas();
 	
 
+
     //set the color size of canvas at the beginning
     function adjustCanvas(){
         window.c.width=$("#canv-div").width()*window.canvSizeCoeff;
@@ -110,6 +118,18 @@
 
     $("#btn_smallerCanv").click(function(){
         window.canvSizeCoeff = window.canvSizeCoeff * 0.95;
+        adjustCanvas();
+    });
+    $("#btn_largerCanv").click(function(){
+        window.canvSizeCoeff = window.canvSizeCoeff / 0.95;
+        adjustCanvas();
+    });
+    $("#btn_smallerCell").click(function(){
+        window.cellSizeCoeff = window.cellSizeCoeff * 0.95;
+        adjustCanvas();
+    });
+    $("#btn_largerCell").click(function(){
+        window.cellSizeCoeff = window.cellSizeCoeff * 1.05;
         adjustCanvas();
     });
 
@@ -217,19 +237,73 @@
         window.context.stroke();
     }
 
-    $("#colorpicker1").spectrum(
+    $("#p1_colpicker").spectrum(
     {
-        color: "#f00",
+        color: window.colb,
+        clickoutFiresChange: true,
         move: function(color){
             window.colb=color.toHexString();
+            refreshBoard();
         }
     }
     );
-    $("#colorpicker2").spectrum(
+    $("#p2_colpicker").spectrum(
     {
-        color: "#f0f",
+        color: window.colw,
+        clickoutFiresChange: true,
         move: function(color){
             window.colw=color.toHexString();
+            refreshBoard();
+        }
+    }
+    );
+    $("#empty_colpicker").spectrum(
+    {
+        color: window.colBlank,
+        clickoutFiresChange: true,
+        move: function(color){
+            window.colBlank=color.toHexString();
+            refreshBoard();
+        }
+    }
+    );
+    $("#background_colpicker").spectrum(
+    {
+        color: window.background_col,
+        clickoutFiresChange: true,
+        move: function(color){
+            window.background_col=color.toHexString();
+            refreshBoard();
+        }
+    }
+    );
+    $("#circles_colpicker").spectrum(
+    {
+        color: window.circles_col,
+        clickoutFiresChange: true,
+        move: function(color){
+            window.circles_col=color.toHexString();
+            refreshBoard();
+        }
+    }
+    );
+    $("#last_colpicker").spectrum(
+    {
+        color: window.lastmove_col,
+        clickoutFiresChange: true,
+        move: function(color){
+            window.lastmove_col=color.toHexString();
+            refreshBoard();
+        }
+    }
+    );
+    $("#center_colpicker").spectrum(
+    {
+        color: window.center_col,
+        clickoutFiresChange: true,
+        move: function(color){
+            window.center_col=color.toHexString();
+            refreshBoard();
         }
     }
     );

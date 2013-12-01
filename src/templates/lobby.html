@@ -13,7 +13,7 @@
     <link href="static/css/bootstrap.css" rel="stylesheet">
 
     <!-- Custom styles for this template -->
-    <link href="static/css/starter-template.css" rel="stylesheet">
+    <link href="static/css/lobby.css" rel="stylesheet">
 
   </head>
 
@@ -29,6 +29,10 @@
                 </button>
             </div>
             <div class="collapse navbar-collapse">
+                <ul class="nav navbar-nav">
+                    <li><a data-toggle="modal" href="#myModal">Create Game</a></li>
+
+                </ul>
                 <ul class="nav navbar-nav navbar-right">
                     <li><a id="logout" href="#">Log Out</a></li>
                 </ul>
@@ -37,20 +41,101 @@
     </div>
 
     <div class="container">
+        <div class="col-md-6" id="gametable">
+            <table class="table table-hover" id="gameTable">
+                <thead>
+                    <tr>
+                        <th>Status</th><th>Type</th><th>Player Name</th><th>Time</th><th>Description</th>
+                    </tr>
+                </thead>
 
-		<table class="table table-hover" id="gameTable">
-            <thead>
-                <tr>
-                    <th>Name</th><th>Time</th>
-                </tr>
-            </thead>
+                <tbody>
+                    <tr> <td>waiting</td><td>Ranked</td><td>MitaniKun</td><td>5+30</td><td>fungame</td> </tr>
+                    <tr> <td>waiting</td><td>Ranked</td><td>MitaniKun</td><td>5+30</td><td>fungame</td> </tr>
+                    <tr> <td>waiting</td><td>Ranked</td><td>MitaniKun</td><td>5+30</td><td>fungame</td> </tr>
+                    <tr> <td>waiting</td><td>Ranked</td><td>MitaniKun</td><td>5+30</td><td>fungame</td> </tr>
+                    <tr> <td>waiting</td><td>Ranked</td><td>MitaniKun</td><td>5+30</td><td>fungame</td> </tr>
+                    <tr> <td>waiting</td><td>Ranked</td><td>MitaniKun</td><td>5+30</td><td>fungame</td> </tr>
+                    <tr> <td>waiting</td><td>Ranked</td><td>MitaniKun</td><td>5+30</td><td>fungame</td> </tr>
+                    <tr> <td>waiting</td><td>Ranked</td><td>MitaniKun</td><td>5+30</td><td>fungame</td> </tr>
+                    <tr> <td>waiting</td><td>Ranked</td><td>MitaniKun</td><td>5+30</td><td>fungame</td> </tr>
+                    <tr> <td>waiting</td><td>Ranked</td><td>MitaniKun</td><td>5+30</td><td>fungame</td> </tr>
+                    <tr> <td>waiting</td><td>Ranked</td><td>MitaniKun</td><td>5+30</td><td>fungame</td> </tr>
+                    <tr> <td>waiting</td><td>Ranked</td><td>MitaniKun</td><td>5+30</td><td>fungame</td> </tr>
+                    <tr> <td>waiting</td><td>Ranked</td><td>MitaniKun</td><td>5+30</td><td>fungame</td> </tr>
+                    <tr> <td>waiting</td><td>Ranked</td><td>MitaniKun</td><td>5+30</td><td>fungame</td> </tr>
+                    <tr> <td>waiting</td><td>Ranked</td><td>Mitaniun</td><td>5+30</td><td>fungame</td> </tr>
+                    <tr> <td>waiting</td><td>Ranked</td><td>MitaniKun</td><td>5+30</td><td>fungame</td> </tr>
+                    <tr> <td>waiting</td><td>Ranked</td><td>MitaniKun</td><td>5+30</td><td>fungame</td> </tr>
+                    <tr> <td>waiting</td><td>Ranked</td><td>MitaniKun</td><td>5+30</td><td>fungame</td> </tr>
+                    <tr> <td>waiting</td><td>Ranked</td><td>MitaniKun</td><td>5+30</td><td>fungame</td> </tr>
+                    <tr> <td>waiting</td><td>Ranked</td><td>MitaniKun</td><td>5+30</td><td>fungame</td> </tr>
+                    <tr> <td>waiting</td><td>Ranked</td><td>MitaniKun</td><td>5+30</td><td>fungame</td> </tr>
+                    <tr> <td>waiting</td><td>Ranked</td><td>MitaniKun</td><td>5+30</td><td>fungame</td> </tr>
+                    <tr> <td>waiting</td><td>Ranked</td><td>MitaniKun</td><td>5+30</td><td>fungame</td> </tr>
+                    <tr> <td>waiting</td><td>Ranked</td><td>MitaniKun</td><td>5+30</td><td>fungame</td> </tr>
+                    <tr> <td>waiting</td><td>Ranked</td><td>MitaniKun</td><td>5+30</td><td>fungame</td> </tr>
+                    <tr> <td>waiting</td><td>Ranked</td><td>MitaniKun</td><td>5+30</td><td>fungame</td> </tr>
+                    <tr> <td>waiting</td><td>Ranked</td><td>MitaniKun</td><td>5+30</td><td>fungame</td> </tr>
+                    <tr> <td>waiting</td><td>Ranked</td><td>MitaniKun</td><td>5+30</td><td>fungame</td> </tr>
+                    <tr> <td>waiting</td><td>Ranked</td><td>MitaniKun</td><td>5+30</td><td>fungame</td> </tr>
 
-            <tbody>
+                </tbody>
+            </table>
+        </div>
+        <div class="col-md-4">
+            <textarea class="form-control" rows="27"></textarea>
+            <input type="text" class="form-control" placeholder="Type something">
+        </div>
+        <div class="col-md-2" id="userlist">
+            <ul class="list-group">
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+                <li class="list-group-item">MitaniKun</li>
+            </ul>
+        </div>
 
-            </tbody>
-		</table>
 		
-		 <a data-toggle="modal" href="#myModal" class="btn btn-primary btn-lg">Create Game</a>
 		  <!-- Create Game Modal -->
 		  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
 			<div class="modal-dialog">
@@ -61,12 +146,45 @@
 				</div>
 				<div class="modal-body">
 				  <div class="form-group">
-					<input type="email" class="form-control" id="description" placeholder="Game Description">
+                      <select class="form-control">
+                        <option>ranked</option>
+                        <option>free</option>
+                      </select>
+                  </div>
+				  <div class="form-group">
+					<input type="text" class="form-control" id="description" placeholder="Game Description">
+				  </div>
+				  <div class="form-group">
+					<input type="text" class="form-control" id="player_self" value="MitaniKun">
+				  </div>
+				  <div class="input-group">
+					<input type="text" class="form-control" id="player_opponent" value="ToyaAkira">
+                    <span class="input-group-btn">
+                        <button class="btn btn-default" type="button">Kick</button>
+                    </span>
 				  </div>
 				  <div class="form-group">
 					<label for="bsize">Board Size</label>
-					<input type="email" class="form-control" id="bsize" value="11">
+					<input type="text" class="form-control" id="bsize" value="11">
 				  </div>
+				  <div class="form-group">
+                      <label for="handicap">Handicap</label>
+                      <input type="text" class="form-control" id="handicap" value="0">
+                      <label for="firstmove">First to Move</label>
+                      <select class="form-control" id="firstmove">
+                        <option>Random</option>
+                        <option>MitaniKun</option>
+                        <option>ToyaAkira</option>
+                      </select>
+				  </div>
+				  <div class="form-group">
+					<label for="itime">Initial Time</label>
+					<input type="text" class="form-control" id="itime" value="5">
+					<label for="atime">Added Time</label>
+					<input type="text" class="form-control" id="atime" value="10">
+				  </div>
+
+
 				</div>
 				<div class="modal-footer">
 				  <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
