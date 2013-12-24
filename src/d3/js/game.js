@@ -1,8 +1,9 @@
-window.playerColors = ['black', 'purple', 'green'];
-
+newGame("Taras", "Peter", 0, 2);
 window.svgW = $("#board").width();
 window.svgH = Math.sqrt(3)*window.svgW/2;
 window.cellSize = 0.55*window.svgW/(window.boardSize*2+1);
+
+window.playerColors = ["black", "purple", "green"];
 window.emptyCellColors = ["#d1d1d1", "#bababa", "#9c9c9c"];
 
 var svg = d3.select("#board")
@@ -82,7 +83,7 @@ function makeMove(cell){
             window.curTurn = 3 - window.curTurn;
             window.movesLeft = 2;
         }
-        move = Object();
+        move = new Object();
         move.coordinates = [cell.x, cell.y, cell.z];
         move.state = cell.state;
         window.moveHistory.push(move);
@@ -114,7 +115,8 @@ function rewind(){
 
 function fastForward(){
     if(window.finished){
-        for(var move in window.moveHistory){
+        for(var i = 0; i < window.moveHistory.length; i++){
+            var move = window.moveHistory[i];
             getCell(move.coordinates).state = move.state;
             window.replayMoveNum = window.moveHistory.length - 1;
         }
@@ -186,10 +188,11 @@ function getRealCoord(x, y, z){
 
 function getCell(){
     /* Returns the cell at specified coordinates. */
-    if(arguments.length == 4)
+    if(arguments.length == 3)
         return window.dataset[window.cellMap['' + arguments[0] + ':' + arguments[1] + ':' + arguments[2]]];
     else
         return window.dataset[window.cellMap['' + arguments[0][0] + ':' + arguments[0][1] + ':' + arguments[0][2]]];
+}
 
 function cellExists(i, j, k){
     return '' + i + ':' + j + ':' + k in window.cellMap;
@@ -215,13 +218,26 @@ function addCoordinates(c1, c2){
 function combineArraysUnique(a1, a2){
     /* Return unique elements from both arrays */
     var out = [];
-    for(var item in a1){
-        if(out.indexOf(item) == -1) out.push(item);
+    for(var i = 0; i < a1.length; i++){
+        var item = a1[i];
+        if(!arrayContains(out, item)) out.push(item);
     }
-    for(var item in a2){
-        if(out.indexOf(item) == -1) out.push(item);
+    for(var i = 0; i < a2.length; i++){
+        var item = a2[i];
+        if(!arrayContains(out, item)) out.push(item);
     }
     return out;    
+}
+
+function removeCoord(arr, coord){
+    for(var i = 0; i < arr.length; i++){
+        if(arr[i][0] == coord[0] && arr[i][1] == coord[1] && arr[i][2] == coord[2]){
+            arr.splice(i, 1);
+            break;
+        }
+
+    }
+
 }
 
 function getNeighborsSimple(coord){
@@ -229,19 +245,29 @@ function getNeighborsSimple(coord){
      * Does not take into account board size, or the center cell */
     var offsets = [[1, -1, 0], [-1, 1, 0], [1, 0, -1], [-1, 0, 1], [0, 1, -1], [0, -1, 1]];
     var neighbors = [];
-    for(var offset in offsets){
+    for(var i = 0; i < offsets.length; i++){
+        var offset = offsets[i];
         neighbors.push(addCoordinates(coord, offset));
     }
     return neighbors;
 }
 
+function arrayContains(arr, coord){
+    for(var i = 0; i < arr.length; i++){
+        if(arr[i][0] == coord[0] && arr[i][1] == coord[1] && arr[i][2] == coord[2])
+            return true;
+    }
+}
+
 function getNeighbors(cell){
     var neighbors = getNeighborsSimple([cell.x, cell.y, cell.z]);
-    if(neighbors.indexOf([0, 0, 0]) != -1){
+    if(arrayContains(neighbors, [0, 0, 0])){
         neighbors = combineArraysUnique(neighbors, getNeighborsSimple([0, 0, 0]));
+        removeCoord(neighbors, [cell.x, cell.y, cell.z]);
     }
     var neighborCells = [];
-    for(var neighbor in neighbors){
+    for(var i = 0; i < neighbors.length; i++){
+        var neighbor = neighbors[i];
         if(cellExists(neighbor[0], neighbor[1], neighbor[2]))
             neighborCells.push(getCell(neighbor[0], neighbor[1], neighbor[2]));
     }
@@ -257,10 +283,11 @@ function floodFill(cell){
     while(stack.length > 0){
         cell = stack.pop();
         var neighbors = getNeighbors(cell);
-        for(var neighbor in neighbors){
-            if(neighbor.group == -1 && neighbor.scoreState = curScoreState){
+        for(var i = 0; i < neighbors.length; i++){
+            var neighbor = neighbors[i];
+            if(neighbor.group == -1 && neighbor.scoreState == curScoreState && !neighbor.isCenter){
                 neighbor.group = groupNum;
-                stack.append(neighbor);
+                stack.push(neighbor);
             }
         }
     }
@@ -284,7 +311,7 @@ function calculateScore(){
         numGroups = [0, 0, 0];
         //assign all cells to a group
         forEveryCell(function(cell) {
-            if(cell.group == -1){
+            if(cell.group == -1 && !cell.isCenter){
                 cell.group = numGroups[cell.scoreState];
                 floodFill(cell);
                 numGroups[cell.scoreState] += 1;
@@ -313,7 +340,8 @@ function calculateScore(){
             }
         });
     }
-    
+
+    alert(iters);
     assert(done);
     
     //calculate the final score
@@ -324,9 +352,9 @@ function calculateScore(){
             numEdges[cell.scoreState] += 1;
         if(cell.marked)
             numMarked[cell.scoreState] += 1;
-    }
+    });
     
-    scores = Object();
+    scores = new Object();
     scores["edge"] = numEdges;
     scores["groups"] = numGroups;
     if(numMarked[1] > numMarked[2])
@@ -337,7 +365,7 @@ function calculateScore(){
     scores["total"][1] = scores["edge"][1] + scores["groups"][1] + scores["special"][1];
     scores["total"][2] = scores["edge"][2] + scores["groups"][2] + scores["special"][2];
     
-    assert(scores.total[1] + scores.total[2] = window.boardSize * 6 + 1);
+    assert(scores.total[1] + scores.total[2] == window.boardSize * 6 + 1);
     
     return scores;
 }
@@ -345,14 +373,15 @@ function calculateScore(){
 function randomSample(population, k){
     var sample = [];
     var numLeft = population.length;
-    for(var e in population){
+    for(var i = 0; i < population.length; i++){
+        var e = population[i];
         if (Math.floor(Math.random() * numLeft) < k){
-            sample.push(cell);
+            sample.push(e);
             k -= 1;
         }
     }
     numLeft -= 1;
-    return output;
+    return sample;
 }
 
 function assert(statement){
@@ -363,10 +392,12 @@ function assert(statement){
 function newGame(p1_name, p2_name, handicap, size){
 
     window.dataset = [];
-    window.cellMap = Object();
+    window.cellMap = new Object();
     window.boardSize = size;
     window.passed = false;
     window.finished = false;
+
+    window.moveHistory = [];
     
     //game related variables
     window.curTurn = 1;
@@ -411,7 +442,8 @@ function newGame(p1_name, p2_name, handicap, size){
     //mark the bonus cells
     var potentialBonusCells = randomSample(window.dataset, 6);
     numAdded = 0;
-    for(var cell in potentialBonusCells){
+    for(var i = 0; i < potentialBonusCells.length; i++){
+        var cell = potentialBonusCells[i];
         if(!cell.isCenter && numAdded < 6){
             cell.bonus = true;
             numAdded += 1;
@@ -420,79 +452,13 @@ function newGame(p1_name, p2_name, handicap, size){
 }
 
 
+$(function(){
+    $("#btn_score").click(function(){
+        var score = calculateScore();
+        alert(score.total[1]);
+        alert(score.total[2]);
 
 
+    });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+});
