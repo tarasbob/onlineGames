@@ -1,9 +1,8 @@
+window.playerColors = ["black", "teal", "orange"];
+window.emptyCellColors = ["#d1d1d1", "#bababa", "#9c9c9c"];
 
 window.svgW = $("#board").width();
 window.svgH = Math.sqrt(3)*window.svgW/2;
-
-window.playerColors = ["black", "purple", "green"];
-window.emptyCellColors = ["#d1d1d1", "#bababa", "#9c9c9c"];
 
 window.svg = d3.select("#board")
     .append("svg")
@@ -54,7 +53,7 @@ function redraw(){
         .attr("fill", function(d){
             return window.playerColors[d.scoreState];
         })
-        .attr("fill-opacity", 0.9);
+        .attr("fill-opacity", 1.0);
     }
 }
 
@@ -143,31 +142,6 @@ function undoMove(){
     }
 }
 
-window.groups.on("click", function(d){
-        if(d.state == 0 && !d.isCenter){
-            d3.select(this).selectAll("polygon")
-                .attr("fill-opacity", 1.0);
-            makeMove(d);
-            redraw();
-        }
-    })
-    .on("mouseover", function(d){
-        if(d.state == 0 && !d.isCenter){
-            d3.select(this).selectAll("polygon")
-                .attr("fill", window.playerColors[window.curTurn])
-                .attr("fill-opacity", 0.5);
-        }
-    })
-    .on("mouseout", function(d){
-        d3.select(this).selectAll("polygon")
-            .attr("fill", function(d){
-                return properColor(d);
-            })
-            .attr("fill-opacity", 1.0);
-    });
-
-window.dataset[window.cellMap['0:0:0']].isCenter = true;
-redraw();
 
 function getRealCoord(x, y, z){
     coord = new Object();
@@ -405,10 +379,10 @@ function assert(statement){
 
 function newGame(p1_name, p2_name, handicap, size){
 
+    window.boardSize = size;
     window.cellSize = 0.55*window.svgW/(window.boardSize*2+1);
     window.dataset = [];
     window.cellMap = new Object();
-    window.boardSize = size;
     window.passed = false;
     window.finished = false;
     window.mode = "game";
@@ -419,25 +393,6 @@ function newGame(p1_name, p2_name, handicap, size){
     window.movesLeft = 1 + handicap;
     window.playerNames = ["", p1_name, p2_name];
     
-    //add group elements
-    window.groups = window.svg.selectAll("g")
-        .data(window.dataset)
-        .enter()
-        .append("g");
-
-    //insert a polygon into every group
-    window.hexes = window.groups.append("polygon")
-        .attr("points", function(d){
-            points = "";
-            for(var i=0; i<6; i++){
-                coord = getRealCoord(d.x, d.y, d.z);
-                points += coord.x + window.cellSize*Math.sin(i*Math.PI/3);
-                points += ",";
-                points += coord.y + window.cellSize*Math.cos(i*Math.PI/3);
-                points += " ";
-            }
-            return points;
-        });
 
     for(var i=-window.boardSize; i<=window.boardSize; i++){
         for(var j=-window.boardSize; j<=window.boardSize; j++){
@@ -473,6 +428,28 @@ function newGame(p1_name, p2_name, handicap, size){
     }
     
     getCell(0, 0, 0).isCenter = true;
+
+    window.svg.selectAll("g").remove();
+
+    //add group elements
+    window.groups = window.svg.selectAll("g")
+        .data(window.dataset)
+        .enter()
+        .append("g");
+
+    //insert a polygon into every group
+    window.hexes = window.groups.append("polygon")
+        .attr("points", function(d){
+            points = "";
+            for(var i=0; i<6; i++){
+                coord = getRealCoord(d.x, d.y, d.z);
+                points += coord.x + window.cellSize*Math.sin(i*Math.PI/3);
+                points += ",";
+                points += coord.y + window.cellSize*Math.cos(i*Math.PI/3);
+                points += " ";
+            }
+            return points;
+        });
     
     //mark the bonus cells
     var potentialBonusCells = randomSample(window.dataset, 6);
@@ -484,6 +461,31 @@ function newGame(p1_name, p2_name, handicap, size){
             numAdded += 1;
         }
     }
+
+    window.groups.on("click", function(d){
+            if(d.state == 0 && !d.isCenter){
+                d3.select(this).selectAll("polygon")
+                    .attr("fill-opacity", 1.0);
+                makeMove(d);
+                redraw();
+            }
+        })
+        .on("mouseover", function(d){
+            if(d.state == 0 && !d.isCenter){
+                d3.select(this).selectAll("polygon")
+                    .attr("fill", window.playerColors[window.curTurn])
+                    .attr("fill-opacity", 0.5);
+            }
+        })
+        .on("mouseout", function(d){
+            d3.select(this).selectAll("polygon")
+                .attr("fill", function(d){
+                    return properColor(d);
+                })
+                .attr("fill-opacity", 1.0);
+        });
+
+    redraw();
 }
 
 
@@ -497,7 +499,17 @@ $(function(){
     });
     
     $("#btn_new").click(function() {
-        newGame("greg", "Bob", 0, 2);
+        newGame("greg", "Bob", 0, 11);
+        redraw();
+    });
+
+    $("#btn_random").click(function() {
+        forEveryCell(function(cell) {
+            if(Math.random() < 0.5)
+                cell.state = 1;
+            else
+                cell.state = 2;
+        });
         redraw();
     });
 
