@@ -1,42 +1,24 @@
-newGame("Taras", "Peter", 0, 2);
+
 window.svgW = $("#board").width();
 window.svgH = Math.sqrt(3)*window.svgW/2;
-window.cellSize = 0.55*window.svgW/(window.boardSize*2+1);
 
 window.playerColors = ["black", "purple", "green"];
 window.emptyCellColors = ["#d1d1d1", "#bababa", "#9c9c9c"];
 
-var svg = d3.select("#board")
+window.svg = d3.select("#board")
     .append("svg")
     .attr("width", window.svgW)
     .attr("height", window.svgH);
-
-//add group elements
-var groups = svg.selectAll("g")
-    .data(window.dataset)
-    .enter()
-    .append("g");
-
-//insert a polygon into every group
-var hexes = groups.append("polygon")
-    .attr("points", function(d){
-        points = "";
-        for(var i=0; i<6; i++){
-            coord = getRealCoord(d.x, d.y, d.z);
-            points += coord.x + window.cellSize*Math.sin(i*Math.PI/3);
-            points += ",";
-            points += coord.y + window.cellSize*Math.cos(i*Math.PI/3);
-            points += " ";
-        }
-        return points;
-    });
+    
+newGame("Taras", "Peter", 0, 5);
+redraw();
 
 function redraw(){
     //CIRCLE DRAWING
     //remove all the cirlces
-    groups.selectAll("circle").remove();
+    window.groups.selectAll("circle").remove();
     //bonus cells
-    groups.filter(function(d){return d.bonus}).append("circle")
+    window.groups.filter(function(d){return d.bonus}).append("circle")
         .attr("r", window.cellSize/1.5)
         .attr("cx", function(d){ return getRealCoord(d.x, d.y, d.z).x; })
         .attr("cy", function(d){ return getRealCoord(d.x, d.y, d.z).y; })
@@ -44,9 +26,8 @@ function redraw(){
         .attr("stroke", "black")
         .attr("stroke-width", window.cellSize/20);
 
-
     //marked cells
-    groups.filter(function(d){return d.marked}).append("circle")
+    window.groups.filter(function(d){return d.marked}).append("circle")
         .attr("r", window.cellSize/4)
         .attr("cx", function(d){ return getRealCoord(d.x, d.y, d.z).x; })
         .attr("cy", function(d){ return getRealCoord(d.x, d.y, d.z).y; })
@@ -54,16 +35,27 @@ function redraw(){
         .attr("fill-opacity", 0.9);
 
     //edge cells
-    groups.filter(function(d){return d.edge}).append("circle")
+    window.groups.filter(function(d){return d.edge}).append("circle")
         .attr("r", window.cellSize/10)
         .attr("cx", function(d){ return getRealCoord(d.x, d.y, d.z).x; })
         .attr("cy", function(d){ return getRealCoord(d.x, d.y, d.z).y; });
 
     //STYLE THE HEXES
-    hexes.attr("style", "stroke:#757575;stroke-width:1")
+    window.hexes.attr("style", "stroke:#757575;stroke-width:1")
         .attr("fill", function(d){
             return properColor(d);
         });
+        
+    if(window.mode == "score"){
+        window.groups.filter(function(d){return d.scoreState}).append("circle")
+        .attr("r", window.cellSize/4)
+        .attr("cx", function(d){ return getRealCoord(d.x, d.y, d.z).x; })
+        .attr("cy", function(d){ return getRealCoord(d.x, d.y, d.z).y; })
+        .attr("fill", function(d){
+            return window.playerColors[d.scoreState];
+        })
+        .attr("fill-opacity", 0.9);
+    }
 }
 
 function properColor(d){
@@ -151,7 +143,7 @@ function undoMove(){
     }
 }
 
-groups.on("click", function(d){
+window.groups.on("click", function(d){
         if(d.state == 0 && !d.isCenter){
             d3.select(this).selectAll("polygon")
                 .attr("fill-opacity", 1.0);
@@ -195,7 +187,10 @@ function getCell(){
 }
 
 function cellExists(i, j, k){
-    return '' + i + ':' + j + ':' + k in window.cellMap;
+    if(arguments.length == 3)
+        return ('' + arguments[0] + ':' + arguments[1] + ':' + arguments[2]) in window.cellMap;
+    else
+        return ('' + arguments[0][0] + ':' + arguments[0][1] + ':' + arguments[0][2]) in window.cellMap;
 }
 
 function forEveryCell(func){
@@ -204,40 +199,65 @@ function forEveryCell(func){
         for(var j=-window.boardSize; j<=window.boardSize; j++){
             var k = -j-i;
             if(k <= window.boardSize && k >= -window.boardSize){
-                func(getCell(i, j, k));
+                if(!(i == 0 && j == 0 && k == 0))
+                    func(getCell(i, j, k));
             }
         }
     }
 }
 
-function addCoordinates(c1, c2){
-    /* Perform vector like addition of 2 arrays of coordinates */
-    return [c1[0] + c2[0], c1[1] + c2[1], c1[2] + c2[2]];
-}
-
-function combineArraysUnique(a1, a2){
-    /* Return unique elements from both arrays */
-    var out = [];
-    for(var i = 0; i < a1.length; i++){
-        var item = a1[i];
-        if(!arrayContains(out, item)) out.push(item);
-    }
-    for(var i = 0; i < a2.length; i++){
-        var item = a2[i];
-        if(!arrayContains(out, item)) out.push(item);
-    }
-    return out;    
-}
-
-function removeCoord(arr, coord){
-    for(var i = 0; i < arr.length; i++){
-        if(arr[i][0] == coord[0] && arr[i][1] == coord[1] && arr[i][2] == coord[2]){
-            arr.splice(i, 1);
+Array.prototype.remove = function(element) {
+    for (var i = 0; i < this.length; i++) {
+        if (element.compare) { 
+            if (this[i].compare(element)){
+                this.splice(i, 1);
+                break;
+            }
+        } else if (this[i] === element){ 
+            this.splice(i, 1);
             break;
         }
-
     }
+}
 
+Array.prototype.vectorAdd = function(otherArr) {
+    if(this.length != otherArr.length) return null;
+    var out = [];
+    for (var i = 0; i < this.length; i++) {
+        out.push(this[i]+otherArr[i]);
+    }
+    return out;
+}
+
+Array.prototype.compare = function(testArr) {
+    if (this.length != testArr.length) return false;
+    for (var i = 0; i < testArr.length; i++) {
+        if (this[i].compare) { 
+            if (!this[i].compare(testArr[i])) return false;
+        } else if (this[i] !== testArr[i]){ 
+            return false;
+        }
+    }
+    return true;
+}
+
+Array.prototype.contains = function(element) {
+    for (var i = 0; i < this.length; i++) {
+        if (element.compare) { 
+            if (this[i].compare(element)) return true;
+        } else if (this[i] === element){ 
+            return true;
+        }
+    }
+    return false;
+}
+
+Array.prototype.extendUnique = function(otherArr) {
+    for (var i = 0; i < otherArr.length; i++) {
+        if (!this.contains(otherArr[i])) { 
+            this.push(otherArr[i]);
+        }
+    }
 }
 
 function getNeighborsSimple(coord){
@@ -247,29 +267,23 @@ function getNeighborsSimple(coord){
     var neighbors = [];
     for(var i = 0; i < offsets.length; i++){
         var offset = offsets[i];
-        neighbors.push(addCoordinates(coord, offset));
+        neighbors.push(coord.vectorAdd(offset));
     }
     return neighbors;
 }
 
-function arrayContains(arr, coord){
-    for(var i = 0; i < arr.length; i++){
-        if(arr[i][0] == coord[0] && arr[i][1] == coord[1] && arr[i][2] == coord[2])
-            return true;
-    }
-}
-
 function getNeighbors(cell){
     var neighbors = getNeighborsSimple([cell.x, cell.y, cell.z]);
-    if(arrayContains(neighbors, [0, 0, 0])){
-        neighbors = combineArraysUnique(neighbors, getNeighborsSimple([0, 0, 0]));
-        removeCoord(neighbors, [cell.x, cell.y, cell.z]);
+    if(neighbors.contains([0, 0, 0])){
+        neighbors.extendUnique(getNeighborsSimple([0, 0, 0]));
+        neighbors.remove([0, 0, 0]);
+        neighbors.remove([cell.x, cell.y, cell.z]);
     }
     var neighborCells = [];
     for(var i = 0; i < neighbors.length; i++){
         var neighbor = neighbors[i];
-        if(cellExists(neighbor[0], neighbor[1], neighbor[2]))
-            neighborCells.push(getCell(neighbor[0], neighbor[1], neighbor[2]));
+        if(cellExists(neighbor))
+            neighborCells.push(getCell(neighbor));
     }
     return neighborCells;
 }
@@ -341,7 +355,7 @@ function calculateScore(){
         });
     }
 
-    alert(iters);
+    alert("iters: " + iters);
     assert(done);
     
     //calculate the final score
@@ -356,7 +370,7 @@ function calculateScore(){
     
     scores = new Object();
     scores["edge"] = numEdges;
-    scores["groups"] = numGroups;
+    scores["groups"] = [0, 2*(numGroups[2] - numGroups[1]), 2*(numGroups[1] - numGroups[2])];
     if(numMarked[1] > numMarked[2])
         scores["special"] = [0, 1, 0];
     else
@@ -375,12 +389,12 @@ function randomSample(population, k){
     var numLeft = population.length;
     for(var i = 0; i < population.length; i++){
         var e = population[i];
-        if (Math.floor(Math.random() * numLeft) < k){
+        if (Math.floor(Math.random() * (numLeft+1)) < k){
             sample.push(e);
             k -= 1;
         }
+        numLeft -= 1;
     }
-    numLeft -= 1;
     return sample;
 }
 
@@ -391,18 +405,39 @@ function assert(statement){
 
 function newGame(p1_name, p2_name, handicap, size){
 
+    window.cellSize = 0.55*window.svgW/(window.boardSize*2+1);
     window.dataset = [];
     window.cellMap = new Object();
     window.boardSize = size;
     window.passed = false;
     window.finished = false;
-
+    window.mode = "game";
     window.moveHistory = [];
     
     //game related variables
     window.curTurn = 1;
     window.movesLeft = 1 + handicap;
     window.playerNames = ["", p1_name, p2_name];
+    
+    //add group elements
+    window.groups = window.svg.selectAll("g")
+        .data(window.dataset)
+        .enter()
+        .append("g");
+
+    //insert a polygon into every group
+    window.hexes = window.groups.append("polygon")
+        .attr("points", function(d){
+            points = "";
+            for(var i=0; i<6; i++){
+                coord = getRealCoord(d.x, d.y, d.z);
+                points += coord.x + window.cellSize*Math.sin(i*Math.PI/3);
+                points += ",";
+                points += coord.y + window.cellSize*Math.cos(i*Math.PI/3);
+                points += " ";
+            }
+            return points;
+        });
 
     for(var i=-window.boardSize; i<=window.boardSize; i++){
         for(var j=-window.boardSize; j<=window.boardSize; j++){
@@ -444,7 +479,7 @@ function newGame(p1_name, p2_name, handicap, size){
     numAdded = 0;
     for(var i = 0; i < potentialBonusCells.length; i++){
         var cell = potentialBonusCells[i];
-        if(!cell.isCenter && numAdded < 6){
+        if(!cell.isCenter && numAdded < 5){
             cell.bonus = true;
             numAdded += 1;
         }
@@ -455,10 +490,15 @@ function newGame(p1_name, p2_name, handicap, size){
 $(function(){
     $("#btn_score").click(function(){
         var score = calculateScore();
-        alert(score.total[1]);
-        alert(score.total[2]);
-
-
+        alert("purple: " + score.total[1]);
+        alert("green: " + score.total[2]);
+        window.mode = "score";
+        redraw();
+    });
+    
+    $("#btn_new").click(function() {
+        newGame("greg", "Bob", 0, 2);
+        redraw();
     });
 
 });
