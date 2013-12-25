@@ -79,6 +79,7 @@ function makeMove(cell){
         move.state = cell.state;
         window.moveHistory.push(move);
     }
+    $("#status").text(window.playerNames[window.curTurn] + " has " + window.movesLeft + " move(s)");
 }
 
 function stepBack(){
@@ -329,7 +330,6 @@ function calculateScore(){
         });
     }
 
-    alert("iters: " + iters);
     assert(done);
     
     //calculate the final score
@@ -390,7 +390,7 @@ function newGame(p1_name, p2_name, handicap, size){
     
     //game related variables
     window.curTurn = 1;
-    window.movesLeft = 1 + handicap;
+    window.movesLeft = 1 + parseInt(handicap, 10);
     window.playerNames = ["", p1_name, p2_name];
     
 
@@ -490,16 +490,30 @@ function newGame(p1_name, p2_name, handicap, size){
 
 
 $(function(){
+    $("#newGameModal").modal('show');
     $("#btn_score").click(function(){
         var score = calculateScore();
-        alert("purple: " + score.total[1]);
-        alert("green: " + score.total[2]);
+        var gameResult = "";
+        gameResult += window.playerNames[1] + ": " + score.total[1] + " ";
+        gameResult += window.playerNames[2] + ": " + score.total[2] + " ";
+
+        $("#status").text(gameResult);
         window.mode = "score";
         redraw();
     });
     
     $("#btn_new").click(function() {
-        newGame("greg", "Bob", 0, 11);
+        $("#newGameModal").modal('show');
+    });
+
+    $("#btn_start").click(function() {
+        var p1_name = $("#p1_name_inp").val();
+        var p2_name = $("#p2_name_inp").val();
+        newGame(p1_name, p2_name,  $("#handicap").val(), $("#boardsize").val());
+        $("#newGameModal").modal('hide');
+        $("#p1_name").text(p1_name).css("color", window.playerColors[1]);
+        $("#p2_name").text(p2_name).css("color", window.playerColors[2]);
+        $("#status").text(window.playerNames[window.curTurn] + " has " + window.movesLeft + " move(s)");
         redraw();
     });
 

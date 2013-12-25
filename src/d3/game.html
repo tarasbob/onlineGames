@@ -12,72 +12,55 @@
     <!-- Bootstrap core CSS -->
     <link href="css/bootstrap.css" rel="stylesheet">
     <link href="css/game.css" rel="stylesheet">
-    <link href="css/spectrum.css" rel="stylesheet">
 
   </head>
 
   <body>
 
 
-  <div class="navbar navbar-default navbar-fixed-top">
-    <div class="container">
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-        </div>
-        <div class="collapse navbar-collapse">
-            <ul class="nav navbar-nav">
-                <li><a data-toggle="modal" href="#settings_modal">Settings</a></li>
-            </ul>
-            <ul class="nav navbar-nav navbar-right">
-                <li><a id="logout" href="#">Log Out</a></li>
-                <li><a id="toLobby" href="#">Back To Lobby</a></li>
-            </ul>
-        </div><!--/.nav-collapse -->
-      </div>
-    </div>
-
-    <div class="modal fade" id="settings_modal">
+    <!-- Modal -->
+    <div class="modal fade" id="newGameModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-            <h4 class="modal-title">Modal title</h4>
+            <h4 class="modal-title" id="myModalLabel">New Game</h4>
           </div>
           <div class="modal-body">
-            <button type="button" id="btn_smallerCanv" class="btn btn-primary btn-block">Reduce Canvas Size</button>
-            <button type="button" id="btn_largerCanv" class="btn btn-primary btn-block">Increase Canvas Size</button>
-            <button type="button" id="btn_smallerCell" class="btn btn-primary btn-block">Reduce Cell Size</button>
-            <button type="button" id="btn_largerCell" class="btn btn-primary btn-block">Increase Cell Size</button>
-            
+            <div class="form-group">
+                <input type="text" class="form-control" id="p1_name_inp" placeholder="Player 1 Name">
+            </div>
+            <div class="form-group">
+                <input type="text" class="form-control" id="p2_name_inp" placeholder="Player 2 Name">
+            </div>
+            <div class="form-group">
+                <input type="text" class="form-control" id="boardsize" placeholder="Board Size">
+            </div>
+            <div class="form-group">
+                <input type="text" class="form-control" id="handicap" placeholder="Handicap">
+            </div>
+              
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button type="button" id="btn_start" class="btn btn-primary">Start</button>
           </div>
         </div><!-- /.modal-content -->
       </div><!-- /.modal-dialog -->
     </div><!-- /.modal -->
-    
+      
 
     <div class="container">
         <div class="col-md-10" id="board">
         </div>
         <div class="col-md-2">
             <h3 id="p1_name">Player 1</h3>
-            <h4 id="p1_time">15:14</h3>
-            <h3 id="p2_name">Player 1</h3>
-            <h4 id="p2_time">17:19</h3>
+            <h3 id="p2_name">Player 2</h3>
             <div id="status">Player 1 has 2 moves</div>
             <hr>
-            <button type="button" id="btn_pass" class="btn btn-primary btn-block">Pass</button>
-            <button type="button" id="btn_score" class="btn btn-primary btn-block">Calculate</button>
-            <button type="button" id="btn_resign" class="btn btn-primary btn-block">Resign</button>
+            <button type="button" id="btn_score" class="btn btn-primary btn-block">Finish Game</button>
             <button type="button" id="btn_new" class="btn btn-primary btn-block">New Game</button>
-            <button type="button" id="btn_random" class="btn btn-primary btn-block">Random</button>
-            <hr>
+            <!--<button type="button" id="btn_random" class="btn btn-primary btn-block">Random</button>-->
 
         </div>
     </div><!-- /.container -->
