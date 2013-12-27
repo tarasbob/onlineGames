@@ -1,3 +1,5 @@
+window.tutPosNum = 0;
+
 window.playerColors = ["black", "teal", "orange"];
 window.emptyCellColors = ["#d1d1d1", "#bababa", "#9c9c9c"];
 
@@ -9,9 +11,7 @@ window.svg = d3.select("#board")
     .attr("width", window.svgW)
     .attr("height", window.svgH);
     
-newGame("Taras", "Peter", 0, 5);
-
-
+newGame("Taras", "Peter", 0, 4);
 
 function makeMove(cell){
     if(!window.finished){
@@ -92,14 +92,6 @@ function undoMove(){
     }
 }
 
-function updateTime(){
-    var now = Date.now();
-    
-    var timeEnd = [0, window.timeStarted + window.timeGiven[1], window.timeStarted + window.timeGiven[2]];
-    var timeLeft = [0, timeEnd[1] - now, timeEnd[2] - now];
-    $("#p1_time").text(Math.ceil(timeLeft[1]/1000));
-}
-
 function newGame(p1_name, p2_name, handicap, size){
 
     window.boardSize = size;
@@ -115,9 +107,6 @@ function newGame(p1_name, p2_name, handicap, size){
     window.curTurn = 1;
     window.movesLeft = 1 + parseInt(handicap, 10);
     window.playerNames = ["", p1_name, p2_name];
-    
-    window.timeGiven = [0, 600000, 600000];
-    window.timeStarted = Date.now();
 
     for(var i=-window.boardSize; i<=window.boardSize; i++){
         for(var j=-window.boardSize; j<=window.boardSize; j++){
@@ -152,6 +141,8 @@ function newGame(p1_name, p2_name, handicap, size){
         }
     }
     
+    
+    
     getCell(0, 0, 0).isCenter = true;
 
     window.svg.selectAll("g").remove();
@@ -177,6 +168,7 @@ function newGame(p1_name, p2_name, handicap, size){
         });
     
     //mark the bonus cells
+    /*
     var potentialBonusCells = randomSample(window.dataset, 6);
     numAdded = 0;
     for(var i = 0; i < potentialBonusCells.length; i++){
@@ -186,14 +178,25 @@ function newGame(p1_name, p2_name, handicap, size){
             numAdded += 1;
         }
     }
+    */
 
     window.groups.on("click", function(d){
-            if(d.state == 0 && !d.isCenter){
-                d3.select(this).selectAll("polygon")
-                    .attr("fill-opacity", 1.0);
-                makeMove(d);
-                redraw();
+            if(window.tutState == "color"){
+                d.state = (d.state + 1) % 3;
+            } else if(window.tutState == "bonus"){
+                if(d.bonus == true){
+                    d.bonus = false;
+                } else {
+                    d.bonus = true;
+                }
+            } else {
+                if(d.marked == true){
+                    d.marked = false;
+                } else {
+                    d.marked = true;
+                }
             }
+            redraw();
         })
         .on("mouseover", function(d){
             if(d.state == 0 && !d.isCenter){
@@ -211,6 +214,7 @@ function newGame(p1_name, p2_name, handicap, size){
         });
 
     redraw();
+    
 }
 
 function updateStatus(){
@@ -218,42 +222,47 @@ function updateStatus(){
 }
 
 $(function(){
-    $("#newGameModal").modal('show');
-    $("#btn_score").click(function(){
-        var score = calculateScore();
-        var gameResult = "";
-        gameResult += window.playerNames[1] + ": " + score.total[1] + " ";
-        gameResult += window.playerNames[2] + ": " + score.total[2] + " ";
-
-        $("#status").text(gameResult);
-        window.mode = "score";
+    window.tutState = "color";
+    
+    $("#btn_printPos").click(function(){
+        consoleOut = "";
+        forEveryCell(function(cell){
+            if(cell.state > 0)
+                consoleOut += "getCell(" + cell.x + ", " + cell.y + ", " + cell.z + ").state = " + cell.state + ";\n"
+        });
+        
+        forEveryCell(function(cell){
+            if(cell.bonus)
+                consoleOut += "getCell(" + cell.x + ", " + cell.y + ", " + cell.z + ").bonus = " + cell.bonus + ";\n"
+        });
+        
+        forEveryCell(function(cell){
+            if(cell.marked)
+                consoleOut += "getCell(" + cell.x + ", " + cell.y + ", " + cell.z + ").marked = " + cell.marked + ";\n"
+        });
+        
+        console.log(consoleOut);
+    });
+    $("#btn_bonus").click(function(){
+        window.tutState = "bonus";
+    });
+    $("#btn_mark").click(function(){
+        window.tutState = "mark";
+    });
+    $("#btn_next").click(function(){
+        forEveryCell(function(cell) {
+            cell.color = 0;
+            cell.marked = false;
+            cell.bonus = false;
+        });
+        window.posArray[window.tutPosNum]();
+        window.tutPosNum += 1;
         redraw();
     });
-    
-    $("#btn_new").click(function() {
-        $("#newGameModal").modal('show');
+    $("#btn_color").click(function(){
+        window.tutState = "color";
     });
-    
-    setInterval(updateTime, 100);
-    
-    $("#btn_undo").click(function() {
-        undoMove();
-        redraw();
-        updateStatus();
-    });
-
-    $("#btn_start").click(function() {
-        var p1_name = $("#p1_name_inp").val();
-        var p2_name = $("#p2_name_inp").val();
-        newGame(p1_name, p2_name,  $("#handicap").val(), $("#boardsize").val());
-        $("#newGameModal").modal('hide');
-        $("#p1_name").text(p1_name).css("color", window.playerColors[1]);
-        $("#p2_name").text(p2_name).css("color", window.playerColors[2]);
-        updateStatus();
-        redraw();
-    });
-
-    $("#btn_random").click(function() {
+    $("#btn_random").click(function(){
         forEveryCell(function(cell) {
             if(Math.random() < 0.5)
                 cell.state = 1;
@@ -262,5 +271,9 @@ $(function(){
         });
         redraw();
     });
+    
+    
+
+
 
 });
