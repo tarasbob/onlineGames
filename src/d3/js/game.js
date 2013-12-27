@@ -79,7 +79,7 @@ function makeMove(cell){
         move.state = cell.state;
         window.moveHistory.push(move);
     }
-    $("#status").text(window.playerNames[window.curTurn] + " has " + window.movesLeft + " move(s)");
+    updateStatus();
 }
 
 function stepBack(){
@@ -131,7 +131,7 @@ function pass(){
 }
 
 function undoMove(){
-    if(window.lastMove){
+    if(window.lastMove && !window.finished){
         var cell = window.lastMove;
         window.lastMove = null;
         if(cell.state == window.curTurn){
@@ -140,6 +140,7 @@ function undoMove(){
             window.curTurn = 3 - window.curTurn;
             window.movesLeft = 1;
         }
+        cell.state = 0;
     }
 }
 
@@ -334,18 +335,18 @@ function calculateScore(){
     
     //calculate the final score
     numEdges = [0, 0, 0];
-    numMarked = [0, 0, 0];
+    numBonus = [0, 0, 0];
     forEveryCell(function(cell) {
         if(cell.edge)
             numEdges[cell.scoreState] += 1;
-        if(cell.marked)
-            numMarked[cell.scoreState] += 1;
+        if(cell.bonus)
+            numBonus[cell.scoreState] += 1;
     });
     
     scores = new Object();
     scores["edge"] = numEdges;
     scores["groups"] = [0, 2*(numGroups[2] - numGroups[1]), 2*(numGroups[1] - numGroups[2])];
-    if(numMarked[1] > numMarked[2])
+    if(numBonus[1] > numBonus[2])
         scores["special"] = [0, 1, 0];
     else
         scores["special"] = [0, 0, 1];
@@ -488,6 +489,10 @@ function newGame(p1_name, p2_name, handicap, size){
     redraw();
 }
 
+function updateStatus(){
+    $("#status").text(window.playerNames[window.curTurn] + " has " + window.movesLeft + " move(s)");
+}
+
 
 $(function(){
     $("#newGameModal").modal('show');
@@ -506,6 +511,12 @@ $(function(){
         $("#newGameModal").modal('show');
     });
 
+    $("#btn_undo").click(function() {
+        undoMove();
+        redraw();
+        updateStatus();
+    });
+
     $("#btn_start").click(function() {
         var p1_name = $("#p1_name_inp").val();
         var p2_name = $("#p2_name_inp").val();
@@ -513,7 +524,7 @@ $(function(){
         $("#newGameModal").modal('hide');
         $("#p1_name").text(p1_name).css("color", window.playerColors[1]);
         $("#p2_name").text(p2_name).css("color", window.playerColors[2]);
-        $("#status").text(window.playerNames[window.curTurn] + " has " + window.movesLeft + " move(s)");
+        updateStatus();
         redraw();
     });
 
