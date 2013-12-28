@@ -1,3 +1,7 @@
+window.playerColors = ["black", "#c2270f", "#678bc0"];
+window.emptyCellColors = ["#edcfa8", "#ab7f5b", "#cba781"];
+window.strokeColor = "#704c29";
+
 function redraw(){
     //CIRCLE DRAWING
     //remove all the cirlces
@@ -26,7 +30,8 @@ function redraw(){
         .attr("cy", function(d){ return getRealCoord(d.x, d.y, d.z).y; });
 
     //STYLE THE HEXES
-    window.hexes.attr("style", "stroke:#757575;stroke-width:1")
+    window.hexes.attr("stroke", window.strokeColor)
+        .attr("stroke-width", window.cellSize/50)
         .attr("fill", function(d){
             return properColor(d);
         });
@@ -187,6 +192,86 @@ function floodFill(cell){
             }
         }
     }
+}
+
+function drawHexes(){
+    //add group Elements
+    window.svg.selectAll("g").remove();
+    window.groups = window.svg.selectAll("g")
+        .data(window.dataset)
+        .enter()
+        .append("g");
+
+    //insert a polygon into every group
+    window.hexes = window.groups.append("polygon")
+        .attr("points", function(d){
+            points = "";
+            for(var i=0; i<6; i++){
+                coord = getRealCoord(d.x, d.y, d.z);
+                points += coord.x + window.cellSize*Math.sin(i*Math.PI/3);
+                points += ",";
+                points += coord.y + window.cellSize*Math.cos(i*Math.PI/3);
+                points += " ";
+            }
+            return points;
+        });
+}
+
+/* UNFINISHED
+function drawHexesGradient(){
+    //add group Elements
+    window.svg.selectAll("g").remove();
+    window.groups = window.svg.selectAll("g")
+        .data(window.dataset)
+        .enter()
+        .append("g");
+
+    window.gradients = window.groups.append("svg:defs")
+        .append("svg:linearGradient")
+        .attr("id", function(d){
+            return "gradient" + d.x + "," + d.y + "," + d.z;
+        })
+        .attr("x1", Math.random())
+        .attr("y1", Math.random())
+        .attr("x2", Math.random())
+        .attr("y2", Math.random())
+        .attr("spreadMethod", "pad");
+
+    window.gradients.append("svg:stop")
+        .attr("offset", "0%")
+        .attr("stop-color", function(d){return window.emptyCellColors[d.patternCol];})
+        .attr("stop-opacity", 1.0);
+    window.gradients.append("svg:stop")
+        .attr("offset", "100%")
+        .attr("stop-color", function(d){return window.emptyCellColors2[d.patternCol];})
+        .attr("stop-color", "blue")
+        //.attr("stop-color", "blue")
+        .attr("stop-opacity", 1.0);
+
+    //insert a polygon into every group
+    window.hexes = window.groups.append("polygon")
+        .attr("points", function(d){
+            points = "";
+            for(var i=0; i<6; i++){
+                coord = getRealCoord(d.x, d.y, d.z);
+                points += coord.x + window.cellSize*Math.sin(i*Math.PI/3);
+                points += ",";
+                points += coord.y + window.cellSize*Math.cos(i*Math.PI/3);
+                points += " ";
+            }
+            return points;
+        });
+}
+*/
+
+function addSVG(){
+    window.svgW = $("#board").width();
+    window.svgH = Math.sqrt(3)*window.svgW/2;
+
+    window.svg = d3.select("#board")
+        .append("svg")
+        .attr("width", window.svgW)
+        .attr("height", window.svgH);
 }
 
 function calculateScore(){

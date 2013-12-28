@@ -1,18 +1,3 @@
-window.playerColors = ["black", "teal", "orange"];
-window.emptyCellColors = ["#d1d1d1", "#bababa", "#9c9c9c"];
-
-window.svgW = $("#board").width();
-window.svgH = Math.sqrt(3)*window.svgW/2;
-
-window.svg = d3.select("#board")
-    .append("svg")
-    .attr("width", window.svgW)
-    .attr("height", window.svgH);
-    
-newGame("Taras", "Peter", 0, 5);
-
-
-
 function makeMove(cell){
     if(!window.finished){
         window.lastMove = cell;
@@ -102,6 +87,13 @@ function updateTime(){
 
 function newGame(p1_name, p2_name, handicap, size){
 
+    setInterval(updateTime, 100);
+
+    if(window.justStarted){
+        window.justStarted = false;
+        addSVG();
+    }
+    
     window.boardSize = size;
     window.cellSize = 0.55*window.svgW/(window.boardSize*2+1);
     window.dataset = [];
@@ -154,27 +146,7 @@ function newGame(p1_name, p2_name, handicap, size){
     
     getCell(0, 0, 0).isCenter = true;
 
-    window.svg.selectAll("g").remove();
-
-    //add group elements
-    window.groups = window.svg.selectAll("g")
-        .data(window.dataset)
-        .enter()
-        .append("g");
-
-    //insert a polygon into every group
-    window.hexes = window.groups.append("polygon")
-        .attr("points", function(d){
-            points = "";
-            for(var i=0; i<6; i++){
-                coord = getRealCoord(d.x, d.y, d.z);
-                points += coord.x + window.cellSize*Math.sin(i*Math.PI/3);
-                points += ",";
-                points += coord.y + window.cellSize*Math.cos(i*Math.PI/3);
-                points += " ";
-            }
-            return points;
-        });
+    drawHexes();
     
     //mark the bonus cells
     var potentialBonusCells = randomSample(window.dataset, 6);
@@ -218,7 +190,15 @@ function updateStatus(){
 }
 
 $(function(){
+
+    window.justStarted = true;
     $("#newGameModal").modal('show');
+
+    $("#newGameModal").on("hidden.bs.modal", function(){
+        if(window.justStarted)
+            $("#newGameModal").modal('show');
+    });
+
     $("#btn_score").click(function(){
         var score = calculateScore();
         var gameResult = "";
@@ -230,11 +210,11 @@ $(function(){
         redraw();
     });
     
+    
     $("#btn_new").click(function() {
         $("#newGameModal").modal('show');
     });
     
-    setInterval(updateTime, 100);
     
     $("#btn_undo").click(function() {
         undoMove();
