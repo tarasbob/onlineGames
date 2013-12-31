@@ -39,6 +39,12 @@
             <div class="form-group">
                 <input type="text" class="form-control" id="handicap" placeholder="Handicap">
             </div>
+            <div class="form-group">
+                <input type="text" class="form-control" id="time_init" placeholder="Initial Time (minutes)">
+            </div>
+            <div class="form-group">
+                <input type="text" class="form-control" id="time_added" placeholder="Added Time (seconds)">
+            </div>
               
           </div>
           <div class="modal-footer">
@@ -54,10 +60,12 @@
         <div class="col-md-10" id="board">
         </div>
         <div class="col-md-2">
-            <h3 id="p1_name">Player 1</h3>
-            <div id="p1_time">Player 1</div>
-            <h3 id="p2_name">Player 2</h3>
-            <div id="status">Player 1 has 2 moves</div>
+            <h2 id="p1_name"></h2>
+            <h3 id="p1_time"></h3>
+            <h2 id="p2_name"></h2>
+            <h3 id="p2_time"></h3>
+            <div id="status"></div>
+            <div id="score_status"></div>
             <hr>
             <button type="button" id="btn_score" class="btn btn-primary btn-block">Finish Game</button>
             <button type="button" id="btn_new" class="btn btn-primary btn-block">New Game</button>

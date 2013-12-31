@@ -4,6 +4,7 @@ function makeMove(cell){
         cell.state = window.curTurn;
         window.movesLeft -= 1;
         if(window.movesLeft < 1){
+            switchTime();
             window.curTurn = 3 - window.curTurn;
             window.movesLeft = 2;
         }
@@ -11,8 +12,16 @@ function makeMove(cell){
         move.coordinates = [cell.x, cell.y, cell.z];
         move.state = cell.state;
         window.moveHistory.push(move);
+
     }
     updateStatus();
+}
+
+function switchTime(){
+    var timeForCurPlayer = window.timeLeft[window.curTurn] - (Date.now() - window.timeStarted);
+    window.timeLeft[window.curTurn] = timeForCurPlayer;
+    window.timeLeft[3 - window.curTurn] += window.timeAdded;
+    window.timeStarted = Date.now();
 }
 
 function stepBack(){
@@ -77,15 +86,45 @@ function undoMove(){
     }
 }
 
-function updateTime(){
-    var now = Date.now();
-    
-    var timeEnd = [0, window.timeStarted + window.timeGiven[1], window.timeStarted + window.timeGiven[2]];
-    var timeLeft = [0, timeEnd[1] - now, timeEnd[2] - now];
-    $("#p1_time").text(Math.ceil(timeLeft[1]/1000));
+function formatTime(milisecs){
+    if(milisecs < 0){
+        return "0:00";
+    }
+    var seconds = milisecs/1000;
+    var minutes = Math.floor(seconds/60);
+    var hours = Math.floor(seconds/3600);
+    seconds = Math.floor(seconds) % 60;
+    minutes = minutes % 60;
+
+    result = "";
+    if(hours > 0){
+        result += hours + ":";
+        if(minutes < 10) result += "0";
+    }
+    result += minutes + ":";
+    if(seconds < 10) result += "0";
+    result += seconds;
+    return result;
 }
 
-function newGame(p1_name, p2_name, handicap, size){
+function updateTime(){
+    if(!window.finished){
+        var timeForCurPlayer = window.timeLeft[window.curTurn] - (Date.now() - window.timeStarted);
+
+        if(window.curTurn == 1){
+            $("#p1_time").text(formatTime(timeForCurPlayer));
+            $("#p2_time").text(formatTime(window.timeLeft[2]));
+        } else {
+            $("#p1_time").text(formatTime(window.timeLeft[1]));
+            $("#p2_time").text(formatTime(timeForCurPlayer));
+        }
+
+        if(timeForCurPlayer < 0) endGame();
+    }
+    updateStatus();
+}
+
+function newGame(p1_name, p2_name, handicap, size, initTime, addedTime){
 
     setInterval(updateTime, 100);
 
@@ -108,7 +147,9 @@ function newGame(p1_name, p2_name, handicap, size){
     window.movesLeft = 1 + parseInt(handicap, 10);
     window.playerNames = ["", p1_name, p2_name];
     
-    window.timeGiven = [0, 600000, 600000];
+    window.timeAdded = addedTime*1000;
+    window.timeInitial = initTime*1000;
+    window.timeLeft = [0, window.timeInitial, window.timeInitial];
     window.timeStarted = Date.now();
 
     for(var i=-window.boardSize; i<=window.boardSize; i++){
@@ -186,7 +227,11 @@ function newGame(p1_name, p2_name, handicap, size){
 }
 
 function updateStatus(){
-    $("#status").text(window.playerNames[window.curTurn] + " has " + window.movesLeft + " move(s)");
+    if(window.finished){
+        $("#status").text("Game Over");
+    } else {
+        $("#status").text(window.playerNames[window.curTurn] + " has " + window.movesLeft + " move(s)");
+    }
 }
 
 $(function(){
@@ -200,12 +245,13 @@ $(function(){
     });
 
     $("#btn_score").click(function(){
+        window.finished = true;
         var score = calculateScore();
         var gameResult = "";
         gameResult += window.playerNames[1] + ": " + score.total[1] + " ";
         gameResult += window.playerNames[2] + ": " + score.total[2] + " ";
 
-        $("#status").text(gameResult);
+        $("#score_status").text(gameResult);
         window.mode = "score";
         redraw();
     });
@@ -225,21 +271,14 @@ $(function(){
     $("#btn_start").click(function() {
         var p1_name = $("#p1_name_inp").val();
         var p2_name = $("#p2_name_inp").val();
-        newGame(p1_name, p2_name,  $("#handicap").val(), $("#boardsize").val());
+        newGame(p1_name, p2_name,  $("#handicap").val(), $("#boardsize").val(), $("#time_init").val()*60, $("#time_added").val());
         $("#newGameModal").modal('hide');
+        $("#score_status").text("");
         $("#p1_name").text(p1_name).css("color", window.playerColors[1]);
         $("#p2_name").text(p2_name).css("color", window.playerColors[2]);
+        $("#p1_time").css("color", window.playerColors[1]);
+        $("#p2_time").css("color", window.playerColors[2]);
         updateStatus();
-        redraw();
-    });
-
-    $("#btn_random").click(function() {
-        forEveryCell(function(cell) {
-            if(Math.random() < 0.5)
-                cell.state = 1;
-            else
-                cell.state = 2;
-        });
         redraw();
     });
 
