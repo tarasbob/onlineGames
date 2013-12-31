@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="shortcut icon" href="static/ico/favicon.png">
+
+    <title>Starter Template for Bootstrap</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <link href="css/game.css" rel="stylesheet">
+
+  </head>
+
+  <body>
+
+    <div class="container">
+        <div class="col-md-10" id="board">
+        </div>
+        <div class="col-md-2">
+            <h3 id="p1_name">Red</h3>
+            <h3 id="p2_name">Blue</h3>
+            <div id="status"></div>
+            <hr>
+            
+            <button type="button" id="btn_random" class="btn btn-primary btn-block">Generate Position</button>
+            <button type="button" id="btn_calculate" class="btn btn-primary btn-block">Calculate Score</button>
+
+            <!--<button type="button" id="btn_random" class="btn btn-primary btn-block">Random</button>-->
+
+        </div>
+    </div><!-- /.container -->
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="js/jquery-2.0.3.min.js"></script>
+    <script src="js/d3.v3.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/lib.js"></script>
+    <script src="js/random.js"></script>
+  </body>
+</html>
