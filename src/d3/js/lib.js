@@ -205,7 +205,7 @@ function drawHexes(){
     //insert a polygon into every group
     window.hexes = window.groups.append("polygon")
         .attr("points", function(d){
-            points = "";
+            var points = "";
             for(var i=0; i<6; i++){
                 coord = getRealCoord(d.x, d.y, d.z);
                 points += coord.x + window.cellSize*Math.sin(i*Math.PI/3);

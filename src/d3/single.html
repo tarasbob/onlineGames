@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="shortcut icon" href="static/ico/favicon.png">
+
+    <title>Edge Connect</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <link href="css/game.css" rel="stylesheet">
+
+  </head>
+
+  <body>
+
+
+    <!-- Modal -->
+    <div class="modal fade" id="newGameModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h4 class="modal-title" id="myModalLabel">New Game</h4>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+                <input type="text" class="form-control" id="p1_name_inp" placeholder="Player 1 Name">
+            </div>
+            <div class="form-group">
+                <input type="text" class="form-control" id="p2_name_inp" placeholder="Player 2 Name">
+            </div>
+            <div class="form-group">
+                <input type="text" class="form-control" id="boardsize" placeholder="Board Size">
+            </div>
+            <div class="form-group">
+                <input type="text" class="form-control" id="handicap" placeholder="Handicap">
+            </div>
+            <div class="form-group">
+                <input type="text" class="form-control" id="time_init" placeholder="Initial Time (minutes)">
+            </div>
+            <div class="form-group">
+                <input type="text" class="form-control" id="time_added" placeholder="Added Time (seconds)">
+            </div>
+              
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button type="button" id="btn_start" class="btn btn-primary">Start</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+      
+
+    <div class="container">
+        <div class="col-md-10" id="board">
+        </div>
+        <div class="col-md-2">
+            <h2 id="p1_name"></h2>
+            <h3 id="p1_time"></h3>
+            <h2 id="p2_name"></h2>
+            <h3 id="p2_time"></h3>
+            <div id="status"></div>
+            <div id="score_status"></div>
+            <hr>
+            <button type="button" id="btn_score" class="btn btn-primary btn-block">Finish Game</button>
+            <button type="button" id="btn_new" class="btn btn-primary btn-block">New Game</button>
+            <button type="button" id="btn_undo" class="btn btn-primary btn-block">Undo</button>
+            <!--<button type="button" id="btn_random" class="btn btn-primary btn-block">Random</button>-->
+
+        </div>
+    </div><!-- /.container -->
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="js/jquery-2.0.3.min.js"></script>
+    <script src="js/d3.v3.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/lib.js"></script>
+    <script src="js/game.js"></script>
+  </body>
+</html>
