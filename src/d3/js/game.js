@@ -1,18 +1,64 @@
+window.clickProtection = true;
+window.clickProtectionState = 0;
+
+window.markedMoves = [];
+window.nextMarkedMoves = [];
+
+var updateMarkedMoves = function(){
+    for(var i = 0; i < window.markedMoves.length; i++){
+        window.markedMoves[i].marked = false;
+    }
+    for(var i = 0; i < window.nextMarkedMoves.length; i++){
+        window.nextMarkedMoves[i].marked = true;
+    }
+    window.markedMoves = window.nextMarkedMoves;
+    window.nextMarkedMoves = [];
+    redraw();
+}
+
+function makeMoveHelper(cell){
+    window.lastMove = cell;
+    cell.state = window.curTurn;
+    window.nextMarkedMoves.push(cell);
+    window.movesLeft -= 1;
+    if(window.movesLeft < 1){
+        //next player's turn
+        updateMarkedMoves();
+        switchTime();
+        window.curTurn = 3 - window.curTurn;
+        window.movesLeft = 2;
+    }
+    move = new Object();
+    move.coordinates = [cell.x, cell.y, cell.z];
+    move.state = cell.state;
+    window.moveHistory.push(move);
+}
+
 function makeMove(cell){
     if(!window.finished){
-        window.lastMove = cell;
-        cell.state = window.curTurn;
-        window.movesLeft -= 1;
-        if(window.movesLeft < 1){
-            switchTime();
-            window.curTurn = 3 - window.curTurn;
-            window.movesLeft = 2;
+        if(window.clickProtection){
+            if(window.clickProtectionState == 0){
+                cell.marked = true;
+                window.clickProtectionState = 1;
+                cell.clickState = 1;
+            } else {
+                window.clickProtectionState = 0;
+                if(cell.clickState > 0){
+                    cell.marked = false;
+                    makeMoveHelper(cell);
+                    cell.clickState = 0;
+                } else {
+                    forEveryCell(function(cell) {
+                        if(cell.clickState > 0){
+                            cell.marked = false;
+                            cell.clickState = 0;
+                        }
+                    });
+                }
+            }
+        } else {
+            makeMoveHelper(cell);
         }
-        move = new Object();
-        move.coordinates = [cell.x, cell.y, cell.z];
-        move.state = cell.state;
-        window.moveHistory.push(move);
-
     }
     updateStatus();
 }
@@ -119,6 +165,20 @@ function updateTime(){
             $("#p2_time").text(formatTime(timeForCurPlayer));
         }
 
+        if(window.clickProtectionState > 0){
+            window.clickProtectionState++;
+            if(window.clickProtectionState > 20){
+                window.clickProtectionState = 0;
+                forEveryCell(function(cell) {
+                    if(cell.clickState > 0){
+                        cell.marked = false;
+                        cell.clickState = 0;
+                    }
+                });
+                redraw();
+            }
+        }
+
         if(timeForCurPlayer < 0) endGame();
     }
     updateStatus();
@@ -174,6 +234,7 @@ function newGame(p1_name, p2_name, handicap, size, initTime, addedTime){
                     "y": j, 
                     "z": k, 
                     "state": 0, 
+                    "clickState": 0, 
                     "patternCol": col,
                     "edge": edge, 
                     "marked": false, 
@@ -201,13 +262,10 @@ function newGame(p1_name, p2_name, handicap, size, initTime, addedTime){
     }
 
     window.groups.on("click", function(d){
-            if(d.state == 0 && !d.isCenter){
-                d3.select(this).selectAll("polygon")
-                    .attr("fill-opacity", 1.0);
-                makeMove(d);
-                redraw();
-            }
-        })
+            makeMove(d);
+            redraw();
+        });
+        /*
         .on("mouseover", function(d){
             if(d.state == 0 && !d.isCenter){
                 d3.select(this).selectAll("polygon")
@@ -222,6 +280,7 @@ function newGame(p1_name, p2_name, handicap, size, initTime, addedTime){
                 })
                 .attr("fill-opacity", 1.0);
         });
+        */
 
     redraw();
 }
