@@ -18,7 +18,7 @@
   <body>
 
 
-    <!-- Modal -->
+    <!-- New Game Modal -->
     <div class="modal fade" id="newGameModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
@@ -28,28 +28,55 @@
           </div>
           <div class="modal-body">
             <div class="form-group">
-                <input type="text" class="form-control" id="p1_name_inp" placeholder="Player 1 Name">
+                <label for="p1_name_inp">Player 1 Name</label>
+                <input type="text" class="form-control" id="p1_name_inp" value="RedPlayer">
             </div>
             <div class="form-group">
-                <input type="text" class="form-control" id="p2_name_inp" placeholder="Player 2 Name">
+                <label for="p2_name_inp">Player 2 Name</label>
+                <input type="text" class="form-control" id="p2_name_inp" value="BluePlayer">
             </div>
             <div class="form-group">
-                <input type="text" class="form-control" id="boardsize" placeholder="Board Size">
+                <label for="boardsize">Board Size</label>
+                <input type="text" class="form-control" id="boardsize" value="11">
             </div>
             <div class="form-group">
-                <input type="text" class="form-control" id="handicap" placeholder="Handicap">
+                <label for="handicap">Handicap</label>
+                <input type="text" class="form-control" id="handicap" value="0">
             </div>
             <div class="form-group">
-                <input type="text" class="form-control" id="time_init" placeholder="Initial Time (minutes)">
+                <label for="time_init">Initial Time (minutes)</label>
+                <input type="text" class="form-control" id="time_init" value="30">
             </div>
             <div class="form-group">
-                <input type="text" class="form-control" id="time_added" placeholder="Added Time (seconds)">
+                <label for="time_added">Added Time (seconds)</label>
+                <input type="text" class="form-control" id="time_added" value="30">
             </div>
               
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
             <button type="button" id="btn_start" class="btn btn-primary">Start</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+    <!-- Game Result Modal -->
+    <div class="modal fade" id="gameResultModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h4 class="modal-title">Game Result</h4>
+          </div>
+          <div class="modal-body" id="gameResultBody">
+              <p>Game Over!</p>
+              <p>RedPlayer Wins!</p>
+              <p>RedPlayer 18 points</p>
+              <p>BluePlayer 5 points</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
           </div>
         </div><!-- /.modal-content -->
       </div><!-- /.modal-dialog -->
@@ -67,10 +94,13 @@
             <div id="status"></div>
             <div id="score_status"></div>
             <hr>
-            <button type="button" id="btn_score" class="btn btn-primary btn-block">Finish Game</button>
+            <button type="button" id="btn_pass" class="btn btn-primary btn-block">Pass</button>
             <button type="button" id="btn_new" class="btn btn-primary btn-block">New Game</button>
-            <button type="button" id="btn_undo" class="btn btn-primary btn-block">Undo</button>
-            <!--<button type="button" id="btn_random" class="btn btn-primary btn-block">Random</button>-->
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" id="chk_protection" checked> Click Protection
+                </label>
+            </div>
 
         </div>
     </div><!-- /.container -->

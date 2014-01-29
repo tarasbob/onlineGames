@@ -6,6 +6,19 @@ function redraw(){
     //CIRCLE DRAWING
     //remove all the cirlces
     window.groups.selectAll("circle").remove();
+
+    //mark the transferred cells
+    if(window.mode == "score"){
+        window.groups.filter(function(d){return d.scoreState}).append("circle")
+        .attr("r", window.cellSize/4)
+        .attr("cx", function(d){ return getRealCoord(d.x, d.y, d.z).x; })
+        .attr("cy", function(d){ return getRealCoord(d.x, d.y, d.z).y; })
+        .attr("fill", function(d){
+            return window.playerColors[d.scoreState];
+        })
+        .attr("fill-opacity", 1.0);
+    }
+
     //bonus cells
     window.groups.filter(function(d){return d.bonus}).append("circle")
         .attr("r", window.cellSize/1.5)
@@ -36,16 +49,6 @@ function redraw(){
             return properColor(d);
         });
         
-    if(window.mode == "score"){
-        window.groups.filter(function(d){return d.scoreState}).append("circle")
-        .attr("r", window.cellSize/4)
-        .attr("cx", function(d){ return getRealCoord(d.x, d.y, d.z).x; })
-        .attr("cy", function(d){ return getRealCoord(d.x, d.y, d.z).y; })
-        .attr("fill", function(d){
-            return window.playerColors[d.scoreState];
-        })
-        .attr("fill-opacity", 1.0);
-    }
 }
 
 function properColor(d){
