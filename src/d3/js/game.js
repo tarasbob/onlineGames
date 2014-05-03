@@ -12,43 +12,37 @@ var updateMarkedMoves = function(){
     redraw();
 }
 
-function makeMoveHelper(cell){
-    cell.state = window.curTurn;
-    window.passed = false;
-    window.nextMarkedMoves.push(cell);
-    window.movesLeft -= 1;
-    if(window.movesLeft < 1){
-        //next player's turn
-        updateMarkedMoves();
-        switchTime();
-        window.curTurn = 3 - window.curTurn;
-        window.movesLeft = 2;
-    }
-    move = new Object();
-    move.coordinates = [cell.x, cell.y, cell.z];
-    move.state = cell.state;
-    window.moveHistory.push(move);
-}
-
 function makeMove(cell){
     if(!window.finished && cell.state == 0){
-        if(window.clickProtection){
-            if(window.clickProtectionState == 0){
-                cell.marked = true;
-                window.clickProtectionState = 1;
-                cell.clickState = 1;
-            } else {
-                window.clickProtectionState = 0;
-                if(cell.clickState > 0){
-                    cell.marked = false;
-                    makeMoveHelper(cell);
-                    cell.clickState = 0;
-                } else {
-                    clearClickState();
-                }
+        if(cell.isCenter){
+            if(window.numPotentialMoves == window.movesLeft){
+                forEveryCell(function(cell) {
+                    if(cell.clickState == 1){
+                        cell.state = window.curTurn;
+                        window.nextMarkedMoves.push(cell);
+                        cell.clickState = 0;
+                        cell.marked = false;
+                    }
+                });
+                window.movesLeft = 2;
+                window.curTurn = 3 - window.curTurn;
+                window.numPotentialMoves = 0;
+                updateMarkedMoves();
+                switchTime();
+                window.passed = false;
             }
         } else {
-            makeMoveHelper(cell);
+            if(cell.clickState == 0){
+                if(window.numPotentialMoves < window.movesLeft){
+                    window.numPotentialMoves++;
+                    cell.clickState = 1;
+                    cell.marked = true;
+                }
+            } else {
+                window.numPotentialMoves--;
+                cell.clickState = 0;
+                cell.marked = false;
+            }
         }
     }
     updateStatus();
@@ -244,6 +238,7 @@ function newGame(p1_name, p2_name, handicap, size, initTime, addedTime){
     window.moveHistory = [];
     window.markedMoves = [];
     window.nextMarkedMoves = [];
+    window.numPotentialMoves = 0;
 
     $("#btn_pass").prop('disabled', false);
 
@@ -344,7 +339,8 @@ function updateStatus(){
     if(window.finished){
         $("#status").text("Game Over");
     } else {
-        $("#status").text(window.playerNames[window.curTurn] + " has " + window.movesLeft + " move(s)");
+        var numMoves = window.movesLeft - window.numPotentialMoves;
+        $("#status").text(window.playerNames[window.curTurn] + " has " + numMoves + " move(s)");
     }
 }
 
