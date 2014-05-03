@@ -44,6 +44,14 @@ function makeMove(cell){
                 cell.marked = false;
             }
         }
+    } else if(window.finished && window.scoring && !cell.isCenter){
+        if(cell.state == 1){
+            cell.state = 0;
+        } else if(cell.state == 0){
+            cell.state = 1;
+        }
+        //displayScore();
+        calculateScore();
     }
     updateStatus();
 }
@@ -94,7 +102,6 @@ function endGame(){
     forEveryCell(function(cell) {
         cell.marked = false;
     });
-    $("#btn_pass").prop('disabled', true);
 }
 
 function displayScore(){
@@ -129,12 +136,13 @@ function displayScore(){
 }
 
 function playPass(){
-
+    clearClickState();
     if(!window.finished){
         if(window.passed == true){
             endGame();
-            displayScore();
-            $("#gameResultModal").modal('show');
+            window.scoring = true;
+            $("#btn_pass").html("Finish Scoring");
+            calculateScore();
             window.mode = "score";
             redraw();
         } else {
@@ -148,6 +156,11 @@ function playPass(){
             window.moveHistory.push(move);
             updateStatus();
         }
+    } else if(window.finished && window.scoring){
+        window.scoring = false;
+        displayScore();
+        $("#gameResultModal").modal('show');
+        $("#btn_pass").prop('disabled', true);
     }
 }
 
@@ -180,6 +193,7 @@ var clearClickState = function(){
             cell.clickState = 0;
         }
     });
+    window.numPotentialMoves = 0;
     redraw();
 }
 
@@ -204,6 +218,7 @@ function updateTime(){
 
         if(timeForCurPlayer < 0){ 
             endGame();
+            $("#btn_pass").prop('disabled', true);
 
             var modalText = "";
             modalText += "<h1>" + window.playerNames[3 - window.curTurn] + " wins on time.</h1>";
@@ -234,6 +249,7 @@ function newGame(p1_name, p2_name, handicap, size, initTime, addedTime){
     window.cellMap = new Object();
     window.passed = false;
     window.finished = false;
+    window.scoring = false;
     window.mode = "game";
     window.moveHistory = [];
     window.markedMoves = [];
@@ -241,6 +257,7 @@ function newGame(p1_name, p2_name, handicap, size, initTime, addedTime){
     window.numPotentialMoves = 0;
 
     $("#btn_pass").prop('disabled', false);
+    $("#btn_pass").html("Pass");
 
     window.clickProtection = $("#chk_protection").is(":checked");
     window.clickProtectionState = 0;
@@ -337,7 +354,11 @@ function newGame(p1_name, p2_name, handicap, size, initTime, addedTime){
 
 function updateStatus(){
     if(window.finished){
-        $("#status").text("Game Over");
+        if(window.scoring){
+            $("#status").text("Scoring");
+        } else {
+            $("#status").text("Game Over");
+        }
     } else {
         var numMoves = window.movesLeft - window.numPotentialMoves;
         $("#status").text(window.playerNames[window.curTurn] + " has " + numMoves + " move(s)");
