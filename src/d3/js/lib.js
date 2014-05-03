@@ -220,53 +220,6 @@ function drawHexes(){
         });
 }
 
-/* UNFINISHED
-function drawHexesGradient(){
-    //add group Elements
-    window.svg.selectAll("g").remove();
-    window.groups = window.svg.selectAll("g")
-        .data(window.dataset)
-        .enter()
-        .append("g");
-
-    window.gradients = window.groups.append("svg:defs")
-        .append("svg:linearGradient")
-        .attr("id", function(d){
-            return "gradient" + d.x + "," + d.y + "," + d.z;
-        })
-        .attr("x1", Math.random())
-        .attr("y1", Math.random())
-        .attr("x2", Math.random())
-        .attr("y2", Math.random())
-        .attr("spreadMethod", "pad");
-
-    window.gradients.append("svg:stop")
-        .attr("offset", "0%")
-        .attr("stop-color", function(d){return window.emptyCellColors[d.patternCol];})
-        .attr("stop-opacity", 1.0);
-    window.gradients.append("svg:stop")
-        .attr("offset", "100%")
-        .attr("stop-color", function(d){return window.emptyCellColors2[d.patternCol];})
-        .attr("stop-color", "blue")
-        //.attr("stop-color", "blue")
-        .attr("stop-opacity", 1.0);
-
-    //insert a polygon into every group
-    window.hexes = window.groups.append("polygon")
-        .attr("points", function(d){
-            points = "";
-            for(var i=0; i<6; i++){
-                coord = getRealCoord(d.x, d.y, d.z);
-                points += coord.x + window.cellSize*Math.sin(i*Math.PI/3);
-                points += ",";
-                points += coord.y + window.cellSize*Math.cos(i*Math.PI/3);
-                points += " ";
-            }
-            return points;
-        });
-}
-*/
-
 function addSVG(){
     window.svgW = $("#board").width();
     window.svgH = Math.sqrt(3)*window.svgW/2;
