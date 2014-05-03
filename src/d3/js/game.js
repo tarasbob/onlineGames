@@ -186,7 +186,6 @@ function formatTime(milisecs){
 }
 
 var clearClickState = function(){
-    window.clickProtectionState = 0;
     forEveryCell(function(cell) {
         if(cell.clickState > 0){
             cell.marked = false;
@@ -207,13 +206,6 @@ function updateTime(){
         } else {
             $("#p1_time").text(formatTime(window.timeLeft[1]));
             $("#p2_time").text(formatTime(timeForCurPlayer));
-        }
-
-        if(window.clickProtectionState > 0){
-            window.clickProtectionState++;
-            if(window.clickProtectionState > 20){
-                clearClickState();
-            }
         }
 
         if(timeForCurPlayer < 0){ 
@@ -258,9 +250,6 @@ function newGame(p1_name, p2_name, handicap, size, initTime, addedTime){
 
     $("#btn_pass").prop('disabled', false);
     $("#btn_pass").html("Pass");
-
-    window.clickProtection = $("#chk_protection").is(":checked");
-    window.clickProtectionState = 0;
 
     //game related variables
     window.curTurn = 1;
@@ -398,16 +387,6 @@ $(function(){
         playPass();
     });
     
-
-    $("#chk_protection").click(function(){
-        if(window.clickProtection == true){
-            clearClickState();
-            window.clickProtection = false;
-        } else {
-            window.clickProtection = true;
-        }
-    });
-
     $("#btn_start").click(function() {
         var p1_name = $("#p1_name_inp").val();
         var p2_name = $("#p2_name_inp").val();
