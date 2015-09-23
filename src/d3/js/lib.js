@@ -230,12 +230,12 @@ function addSVG(){
         .attr("height", window.svgH);
 }
 
-function calculateScore(){
+function calculateScore(max_player, min_player){
     forEveryCell(function(cell) {
-        if(cell.state == 1)
-            cell.scoreState = 1; 
+        if(cell.state == min_player)
+            cell.scoreState = min_player; 
         else
-            cell.scoreState = 2;
+            cell.scoreState = max_player;
     });
 
     var done = false;

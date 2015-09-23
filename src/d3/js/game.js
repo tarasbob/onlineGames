@@ -51,7 +51,7 @@ function makeMove(cell){
             cell.state = 1;
         }
         //displayScore();
-        calculateScore();
+        calculateScore(1, 2);
     }
     updateStatus();
 }
@@ -105,7 +105,7 @@ function endGame(){
 }
 
 function displayScore(){
-    var score = calculateScore();
+    var score = calculateScore(1, 2);
     var gameResult = "";
     var winnerName = "";
     if(score.total[1] > score.total[2]){
@@ -142,7 +142,7 @@ function playPass(){
             endGame();
             window.scoring = true;
             $("#btn_pass").html("Finish Scoring");
-            calculateScore();
+            calculateScore(1, 2);
             window.mode = "score";
             redraw();
         } else {
@@ -314,22 +314,6 @@ function newGame(p1_name, p2_name, handicap, size, initTime, addedTime){
             makeMove(d);
             redraw();
         });
-        /*
-        .on("mouseover", function(d){
-            if(d.state == 0 && !d.isCenter){
-                d3.select(this).selectAll("polygon")
-                    .attr("fill", window.playerColors[window.curTurn])
-                    .attr("fill-opacity", 0.5);
-            }
-        })
-        .on("mouseout", function(d){
-            d3.select(this).selectAll("polygon")
-                .attr("fill", function(d){
-                    return properColor(d);
-                })
-                .attr("fill-opacity", 1.0);
-        });
-        */
 
     $("#newGameModal").modal('hide');
     $("#score_status").text("");
@@ -337,6 +321,10 @@ function newGame(p1_name, p2_name, handicap, size, initTime, addedTime){
     $("#p2_name").text(p2_name).css("color", window.playerColors[2]);
     $("#p1_time").css("color", window.playerColors[1]);
     $("#p2_time").css("color", window.playerColors[2]);
+    $("#p1_score_est").css("color", window.playerColors[1]);
+    $("#p2_score_est").css("color", window.playerColors[2]);
+
+
     updateStatus();
     redraw();
 }
@@ -351,6 +339,15 @@ function updateStatus(){
     } else {
         var numMoves = window.movesLeft - window.numPotentialMoves;
         $("#status").text(window.playerNames[window.curTurn] + " has " + numMoves + " move(s)");
+
+        var score_1 = calculateScore(1, 2);
+        var score_2 = calculateScore(2, 1);
+        var best_1 = score_1.total[1];
+        var worst_2 = score_1.total[2];
+        var best_2 = score_2.total[2];
+        var worst_1 = score_2.total[1];
+        $("#p1_score_est").text(worst_1 + " - " + best_1);
+        $("#p2_score_est").text(worst_2 + " - " + best_2);
     }
 }
 
