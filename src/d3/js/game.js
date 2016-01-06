@@ -1,4 +1,5 @@
-
+// get rid of pass, game is played unitl there is no more score differencial
+// make center cell regular
 
 var updateMarkedMoves = function(){
     for(var i = 0; i < window.markedMoves.length; i++){
@@ -12,10 +13,11 @@ var updateMarkedMoves = function(){
     redraw();
 }
 
-function makeMove(cell){
+var makeMove = function(cell){
     if(!window.finished && cell.state == 0){
         if(cell.isCenter){
             if(window.numPotentialMoves == window.movesLeft){
+                // commit the move
                 forEveryCell(function(cell) {
                     if(cell.clickState == 1){
                         cell.state = window.curTurn;
@@ -34,11 +36,13 @@ function makeMove(cell){
         } else {
             if(cell.clickState == 0){
                 if(window.numPotentialMoves < window.movesLeft){
+                    // make a potential move (put a white dot)
                     window.numPotentialMoves++;
                     cell.clickState = 1;
                     cell.marked = true;
                 }
             } else {
+                // remove a white dot
                 window.numPotentialMoves--;
                 cell.clickState = 0;
                 cell.marked = false;
@@ -56,49 +60,15 @@ function makeMove(cell){
     updateStatus();
 }
 
-function switchTime(){
+var switchTime = function(){
     var timeForCurPlayer = window.timeLeft[window.curTurn] - (Date.now() - window.timeStarted);
     window.timeLeft[window.curTurn] = timeForCurPlayer;
     window.timeLeft[3 - window.curTurn] += window.timeAdded;
     window.timeStarted = Date.now();
 }
 
-function stepBack(){
-    if(window.finished && window.replayMoveNum >= 0){
-        getCell(window.moveHistory[window.replayMoveNum].coordinates).state = 0;
-        window.replayMoveNum -= 1;
-    }
-}
-
-function stepForward(){
-    if(window.finished && window.replayMoveNum < window.moveHistory.length - 1){
-        getCell(window.moveHistory[window.replayMoveNum].coordinates).state = window.moveHistory[window.replayMoveNum].state;
-        window.replayMoveNum -= 1;
-    }
-}
-
-function rewind(){
-    if(window.finished){
-        forEveryCell(function(cell) {
-            cell.state = 0;
-        });
-        window.replayMoveNum = -1;
-    }
-}
-
-function fastForward(){
-    if(window.finished){
-        for(var i = 0; i < window.moveHistory.length; i++){
-            var move = window.moveHistory[i];
-            getCell(move.coordinates).state = move.state;
-            window.replayMoveNum = window.moveHistory.length - 1;
-        }
-    }
-}
-
 function endGame(){
     window.finished = true;
-    window.replayMoveNum = window.moveHistory.length - 1;
     forEveryCell(function(cell) {
         cell.marked = false;
     });
@@ -153,7 +123,6 @@ function playPass(){
             window.movesLeft = 2;
             move = new Object();
             move.pass = true;
-            window.moveHistory.push(move);
             updateStatus();
         }
     } else if(window.finished && window.scoring){
@@ -196,7 +165,8 @@ var clearClickState = function(){
     redraw();
 }
 
-function updateTime(){
+var updateTime = function(){
+    // update time for each player on the board, end game if someone runs out of time
     if(!window.finished){
         var timeForCurPlayer = window.timeLeft[window.curTurn] - (Date.now() - window.timeStarted);
 
@@ -226,8 +196,9 @@ function updateTime(){
     updateStatus();
 }
 
-function newGame(p1_name, p2_name, handicap, size, initTime, addedTime){
+var newGame = function(p1_name, p2_name, handicap, size, initTime, addedTime){
 
+    // call updateTime every 100 ms
     setInterval(updateTime, 100);
 
     if(window.coldStart){
@@ -236,16 +207,25 @@ function newGame(p1_name, p2_name, handicap, size, initTime, addedTime){
     }
     
     window.boardSize = size;
+    // size of each cell is derived from board size
     window.cellSize = 0.55*window.svgW/(window.boardSize*2+1);
+    // not contains all the cells, cellmap maps to this
     window.dataset = [];
+    // contains all the cells in the game, map looks like i:j:k -> int (int points to element in window.dataset)
     window.cellMap = new Object();
+    // whether a pass was played
     window.passed = false;
+    // game finished because of time or pass, pass
     window.finished = false;
+    // scoring is after the game is finished and before modal with final result is displayed
     window.scoring = false;
+    // can be game or score
     window.mode = "game";
-    window.moveHistory = [];
+    // what is this
     window.markedMoves = [];
+    // why do we need this??
     window.nextMarkedMoves = [];
+    // number of white dots on the board
     window.numPotentialMoves = 0;
 
     $("#btn_pass").prop('disabled', false);
@@ -253,7 +233,7 @@ function newGame(p1_name, p2_name, handicap, size, initTime, addedTime){
 
     //game related variables
     window.curTurn = 1;
-    window.movesLeft = 1 + parseInt(handicap, 10);
+    window.movesLeft = 1 + parseInt(handicap, 10); // start the game with 1 move left
     window.playerNames = ["", p1_name, p2_name];
     
     window.timeAdded = addedTime*1000;
@@ -274,19 +254,18 @@ function newGame(p1_name, p2_name, handicap, size, initTime, addedTime){
                 }
 
                 var edge = false;
-                if(Math.max(Math.abs(i), Math.abs(j), Math.abs(k)) == window.boardSize)
-                    edge = true;
+                if(Math.max(Math.abs(i), Math.abs(j), Math.abs(k)) == window.boardSize) edge = true;
 
                 //Push returns the length of the array; To get the index of the element, we subtract 1.
                 window.cellMap['' + i + ':' + j + ':' + k] = window.dataset.push(
                    {"x": i, 
                     "y": j, 
                     "z": k, 
-                    "state": 0, 
-                    "clickState": 0, 
+                    "state": 0, // 0 means empty, 1 means player 1 has a stone here, 2 means player 2
+                    "clickState": 0, // what is this?
                     "patternCol": col,
                     "edge": edge, 
-                    "marked": false, 
+                    "marked": false, // contains a white dot (potential move)
                     "bonus": false, 
                     "isCenter": false, 
                     "scoreState": 0,
@@ -324,12 +303,12 @@ function newGame(p1_name, p2_name, handicap, size, initTime, addedTime){
     $("#p1_score_est").css("color", window.playerColors[1]);
     $("#p2_score_est").css("color", window.playerColors[2]);
 
-
     updateStatus();
     redraw();
 }
 
-function updateStatus(){
+var updateStatus = function(){
+    // updates the status string on the page, so user knows what's going on
     if(window.finished){
         if(window.scoring){
             $("#status").text("Scoring");
@@ -361,21 +340,6 @@ $(function(){
             $("#newGameModal").modal('show');
     });
 
-    /*
-    $("#btn_score").click(function(){
-        window.finished = true;
-        var score = calculateScore();
-        var gameResult = "";
-        gameResult += window.playerNames[1] + ": " + score.total[1] + " ";
-        gameResult += window.playerNames[2] + ": " + score.total[2] + " ";
-
-        $("#score_status").text(gameResult);
-        window.mode = "score";
-        redraw();
-    });
-    */
-    
-    
     $("#btn_new").click(function() {
         $("#newGameModal").modal('show');
     });
