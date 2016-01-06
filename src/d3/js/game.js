@@ -1,46 +1,20 @@
-// get rid of pass, game is played unitl there is no more score differencial
-// make center cell regular
-
 var makeMove = function(cell){
-    if(!window.finished && cell.state == 0){
-        if(cell.isCenter){
-            if(window.numPotentialMoves == window.movesLeft){
-                // commit the move
-                forEveryCell(function(cell) {
-                    if(cell.marked == true){
-                        cell.state = window.curTurn;
-                        cell.marked = false;
-                    }
-                });
-                window.movesLeft = 2;
-                window.curTurn = 3 - window.curTurn;
-                window.numPotentialMoves = 0;
-                switchTime();
-                window.passed = false;
+    // when the player clicks somewhere on the board
+    if(!window.finished && cell.state == 0) {
+        if(cell.marked == false){
+            if(window.numPotentialMoves < window.movesLeft){
+                // make a potential move (put a white dot)
+                window.numPotentialMoves++;
+                cell.marked = true;
             }
         } else {
-            if(cell.marked == false){
-                if(window.numPotentialMoves < window.movesLeft){
-                    // make a potential move (put a white dot)
-                    window.numPotentialMoves++;
-                    cell.marked = true;
-                }
-            } else {
-                // remove a white dot
-                window.numPotentialMoves--;
-                cell.marked = false;
-            }
+            // remove a white dot
+            window.numPotentialMoves--;
+            cell.marked = false;
         }
-    } else if(window.finished && window.scoring && !cell.isCenter){
-        if(cell.state == 1){
-            cell.state = 0;
-        } else if(cell.state == 0){
-            cell.state = 1;
-        }
-        //displayScore();
-        calculateScore(1, 2);
     }
     updateStatus();
+    redraw();
 }
 
 var switchTime = function(){
@@ -88,16 +62,16 @@ function displayScore(){
     $("#gameResultBody").html(modalText);
 }
 
-function playPass(){
+var playPass = function(){
     clearMarked();
     if(!window.finished){
         if(window.passed == true){
             endGame();
-            window.scoring = true;
-            $("#btn_pass").html("Finish Scoring");
-            calculateScore(1, 2);
+            // to make the game draw red and blue circles
             window.mode = "score";
-            redraw();
+            displayScore();
+            $("#gameResultModal").modal('show');
+            $("#btn_pass").prop('disabled', true);
         } else {
             window.passed = true;
             switchTime();
@@ -105,17 +79,31 @@ function playPass(){
             window.movesLeft = 2;
             move = new Object();
             move.pass = true;
-            updateStatus();
         }
-    } else if(window.finished && window.scoring){
-        window.scoring = false;
-        displayScore();
-        $("#gameResultModal").modal('show');
-        $("#btn_pass").prop('disabled', true);
+        updateStatus();
+        redraw();
     }
 }
 
-function formatTime(milisecs){
+var commitMove = function() {
+    if(window.numPotentialMoves == window.movesLeft) {
+        forEveryCell(function(cell) {
+            if(cell.marked == true){
+                cell.state = window.curTurn;
+                cell.marked = false;
+            }
+        });
+        window.movesLeft = 2;
+        window.curTurn = 3 - window.curTurn;
+        window.numPotentialMoves = 0;
+        switchTime();
+        window.passed = false;
+    }
+    updateStatus();
+    redraw();
+}
+
+var formatTime = function(milisecs){
     if(milisecs < 0){
         return "0:00";
     }
@@ -141,6 +129,7 @@ var clearMarked = function(){
       cell.marked = false;
     });
     window.numPotentialMoves = 0;
+    updateStatus();
     redraw();
 }
 
@@ -196,8 +185,6 @@ var newGame = function(p1_name, p2_name, handicap, size, initTime, addedTime){
     window.passed = false;
     // game finished because of time or pass, pass
     window.finished = false;
-    // scoring is after the game is finished and before modal with final result is displayed
-    window.scoring = false;
     // can be game or score
     window.mode = "game";
     // what is this
@@ -241,32 +228,19 @@ var newGame = function(p1_name, p2_name, handicap, size, initTime, addedTime){
                     "edge": edge, // is this edge or not?
                     "marked": false, // contains a white dot (potential move)
                     "bonus": false, // bonus cell?
-                    "isCenter": false, 
-                    "scoreState": 0,
-                    "group": -1}) - 1;
+                    "scoreState": 0, // used during score calculation to assign every cell to a player
+                    "group": -1}) - 1; // group is used during score calculation
             }
         }
     }
     
-    getCell(0, 0, 0).isCenter = true;
-
     drawHexes();
     
-    //mark the bonus cells
-    var potentialBonusCells = randomSample(window.dataset, 6);
-    numAdded = 0;
-    for(var i = 0; i < potentialBonusCells.length; i++){
-        var cell = potentialBonusCells[i];
-        if(!cell.isCenter && numAdded < 5){
-            cell.bonus = true;
-            numAdded += 1;
-        }
-    }
+    getCell(0, 0, 0).bonus = true;
 
     window.groups.on("click", function(d){
             makeMove(d);
-            redraw();
-        });
+    });
 
     $("#newGameModal").modal('hide');
     $("#score_status").text("");
@@ -284,13 +258,15 @@ var newGame = function(p1_name, p2_name, handicap, size, initTime, addedTime){
 var updateStatus = function(){
     // updates the status string on the page, so user knows what's going on
     if(window.finished){
-        if(window.scoring){
-            $("#status").text("Scoring");
-        } else {
-            $("#status").text("Game Over");
-        }
+        $("#status").text("Game Over");
     } else {
         var numMoves = window.movesLeft - window.numPotentialMoves;
+        if (numMoves == 0) {
+            $("#btn_move").prop('disabled', false);
+        } else {
+            $("#btn_move").prop('disabled', true);
+        }
+            
         $("#status").text(window.playerNames[window.curTurn] + " has " + numMoves + " move(s)");
 
         var score_1 = calculateScore(1, 2);
@@ -320,6 +296,10 @@ $(function(){
 
     $("#btn_pass").click(function(){
         playPass();
+    });
+
+    $("#btn_move").click(function(){
+        commitMove();
     });
     
     $("#btn_start").click(function() {

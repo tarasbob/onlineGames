@@ -51,7 +51,6 @@ function redraw(){
 }
 
 function properColor(d){
-    if(d.isCenter) return "black";
     if(d.state == 0) return window.emptyCellColors[d.patternCol];
     return window.playerColors[d.state];
 }
@@ -81,14 +80,13 @@ function cellExists(i, j, k){
         return ('' + arguments[0][0] + ':' + arguments[0][1] + ':' + arguments[0][2]) in window.cellMap;
 }
 
-function forEveryCell(func){
+var forEveryCell = function(func){
     /* Apply func to every cell */
     for(var i=-window.boardSize; i<=window.boardSize; i++){
         for(var j=-window.boardSize; j<=window.boardSize; j++){
             var k = -j-i;
             if(k <= window.boardSize && k >= -window.boardSize){
-                if(!(i == 0 && j == 0 && k == 0))
-                    func(getCell(i, j, k));
+                func(getCell(i, j, k));
             }
         }
     }
@@ -163,11 +161,6 @@ function getNeighborsSimple(coord){
 
 function getNeighbors(cell){
     var neighbors = getNeighborsSimple([cell.x, cell.y, cell.z]);
-    if(neighbors.contains([0, 0, 0])){
-        neighbors.extendUnique(getNeighborsSimple([0, 0, 0]));
-        neighbors.remove([0, 0, 0]);
-        neighbors.remove([cell.x, cell.y, cell.z]);
-    }
     var neighborCells = [];
     for(var i = 0; i < neighbors.length; i++){
         var neighbor = neighbors[i];
@@ -188,7 +181,7 @@ function floodFill(cell){
         var neighbors = getNeighbors(cell);
         for(var i = 0; i < neighbors.length; i++){
             var neighbor = neighbors[i];
-            if(neighbor.group == -1 && neighbor.scoreState == curScoreState && !neighbor.isCenter){
+            if(neighbor.group == -1 && neighbor.scoreState == curScoreState){
                 neighbor.group = groupNum;
                 stack.push(neighbor);
             }
@@ -247,7 +240,7 @@ function calculateScore(max_player, min_player){
         numGroups = [0, 0, 0];
         //assign all cells to a group
         forEveryCell(function(cell) {
-            if(cell.group == -1 && !cell.isCenter){
+            if(cell.group == -1){
                 cell.group = numGroups[cell.scoreState];
                 floodFill(cell);
                 numGroups[cell.scoreState] += 1;
