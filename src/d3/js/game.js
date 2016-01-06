@@ -1,50 +1,33 @@
 // get rid of pass, game is played unitl there is no more score differencial
 // make center cell regular
 
-var updateMarkedMoves = function(){
-    for(var i = 0; i < window.markedMoves.length; i++){
-        window.markedMoves[i].marked = false;
-    }
-    for(var i = 0; i < window.nextMarkedMoves.length; i++){
-        window.nextMarkedMoves[i].marked = true;
-    }
-    window.markedMoves = window.nextMarkedMoves;
-    window.nextMarkedMoves = [];
-    redraw();
-}
-
 var makeMove = function(cell){
     if(!window.finished && cell.state == 0){
         if(cell.isCenter){
             if(window.numPotentialMoves == window.movesLeft){
                 // commit the move
                 forEveryCell(function(cell) {
-                    if(cell.clickState == 1){
+                    if(cell.marked == true){
                         cell.state = window.curTurn;
-                        window.nextMarkedMoves.push(cell);
-                        cell.clickState = 0;
                         cell.marked = false;
                     }
                 });
                 window.movesLeft = 2;
                 window.curTurn = 3 - window.curTurn;
                 window.numPotentialMoves = 0;
-                updateMarkedMoves();
                 switchTime();
                 window.passed = false;
             }
         } else {
-            if(cell.clickState == 0){
+            if(cell.marked == false){
                 if(window.numPotentialMoves < window.movesLeft){
                     // make a potential move (put a white dot)
                     window.numPotentialMoves++;
-                    cell.clickState = 1;
                     cell.marked = true;
                 }
             } else {
                 // remove a white dot
                 window.numPotentialMoves--;
-                cell.clickState = 0;
                 cell.marked = false;
             }
         }
@@ -106,7 +89,7 @@ function displayScore(){
 }
 
 function playPass(){
-    clearClickState();
+    clearMarked();
     if(!window.finished){
         if(window.passed == true){
             endGame();
@@ -117,7 +100,6 @@ function playPass(){
             redraw();
         } else {
             window.passed = true;
-            updateMarkedMoves();
             switchTime();
             window.curTurn = 3 - window.curTurn;
             window.movesLeft = 2;
@@ -154,12 +136,9 @@ function formatTime(milisecs){
     return result;
 }
 
-var clearClickState = function(){
+var clearMarked = function(){
     forEveryCell(function(cell) {
-        if(cell.clickState > 0){
-            cell.marked = false;
-            cell.clickState = 0;
-        }
+      cell.marked = false;
     });
     window.numPotentialMoves = 0;
     redraw();
@@ -222,10 +201,6 @@ var newGame = function(p1_name, p2_name, handicap, size, initTime, addedTime){
     // can be game or score
     window.mode = "game";
     // what is this
-    window.markedMoves = [];
-    // why do we need this??
-    window.nextMarkedMoves = [];
-    // number of white dots on the board
     window.numPotentialMoves = 0;
 
     $("#btn_pass").prop('disabled', false);
@@ -262,11 +237,10 @@ var newGame = function(p1_name, p2_name, handicap, size, initTime, addedTime){
                     "y": j, 
                     "z": k, 
                     "state": 0, // 0 means empty, 1 means player 1 has a stone here, 2 means player 2
-                    "clickState": 0, // what is this?
-                    "patternCol": col,
-                    "edge": edge, 
+                    "patternCol": col, // which color should the empty cell be
+                    "edge": edge, // is this edge or not?
                     "marked": false, // contains a white dot (potential move)
-                    "bonus": false, 
+                    "bonus": false, // bonus cell?
                     "isCenter": false, 
                     "scoreState": 0,
                     "group": -1}) - 1;

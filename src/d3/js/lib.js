@@ -48,7 +48,6 @@ function redraw(){
         .attr("fill", function(d){
             return properColor(d);
         });
-        
 }
 
 function properColor(d){
