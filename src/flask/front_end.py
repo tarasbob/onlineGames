@@ -54,21 +54,25 @@ class Game(object):
     self.creation_time = 0
     self.p1 = None
     self.p2 = p2
-    self.status = 'init'
-    self.state_id = get_id()
+    self.prev_state_id = 'init'
+    self.state_id = 'init'
     self.last_move = []
     self.board = GameBoard(board_size, handicap)
+
+  def _update_id(self):
+    self.prev_state_id = self.state_id
+    self.state_id = get_id()
 
   def make_move(self, move):
     self.last_move = move
     self.board.make_move(move)
-    self.state_id = get_id()
+    self._update_id()
 
   def add_player(self, p1):
     self.p1 = p1
     p1.game = self
-    self.status = get_id()
     self.creation_time = 0
+    self._update_id()
 
   @property
   def turn(self):
@@ -142,11 +146,29 @@ def get_state():
   if game is None:
     return None
   cur_player = 1 if game.p1 == user else 2
-  return jsonify(state_id=game.state_id, status=game.status, turn=game.turn,
-      last_move=game.last_move, p1_time=game.p1_time, p2_time=game.p2_time,
-      p1_name=game.p1.username if game.p1 else 'Empty',
-      p2_name=game.p2.username, handicap=game.board.handicap,
-      size=game.board.size, game_id=game.game_id, cur_player=cur_player)
+
+  client_state_id = request.json['client_state_id']
+  if client_state_id == game.state_id:
+    return jsonify(update="no_update", game_id=game.game_id)
+  elif client_state_id == game.prev_state_id:
+    # return all info
+    return jsonify(
+        update="new_data",
+        state_id=game.state_id,
+        turn=game.turn,
+        last_move=game.last_move,
+        p1_time=game.p1_time,
+        p2_time=game.p2_time,
+        p1_name=game.p1.username if game.p1 else 'Empty',
+        p2_name=game.p2.username, handicap=game.board.handicap,
+        size=game.board.size,
+        game_id=game.game_id,
+        cur_player=cur_player)
+    pass
+  else:
+    # client state id is messed up
+    return jsonify(update="error")
+
 
 @app.route('/make_move', methods=['GET', 'POST'])
 def make_move():

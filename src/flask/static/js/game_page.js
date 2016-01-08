@@ -1,6 +1,6 @@
 var makeMove = function(cell){
     // when the player clicks somewhere on the board
-    if(window.cur_player == window.curTurn && !window.finished && cell.state == 0) {
+    if(!window.frozen && window.cur_player == window.curTurn && !window.finished && cell.state == 0) {
         if(cell.marked == false){
             if(window.numPotentialMoves < window.movesLeft){
                 // make a potential move (put a white dot)
@@ -64,7 +64,7 @@ function displayScore(){
 
 var playPass = function(){
     clearMarked();
-    if(!window.finished){
+    if(!(window.finished || window.frozen)){
         if(window.passed == true){
             endGame();
             // to make the game draw red and blue circles
@@ -86,10 +86,14 @@ var playPass = function(){
 }
 
 var commitMove = function() {
-    if(window.cur_player == window.curTurn && window.numPotentialMoves == window.movesLeft) {
+    if(!window.frozen && window.cur_player == window.curTurn && window.numPotentialMoves == window.movesLeft) {
         var send_cells = [];
         forEveryCell(function(cell) {
-            if(cell.marked == true) {
+            if(cell.marked == true && cell.state == 0) {
+              send_cells.push([cell.x, cell.y, cell.z]);
+              cell.state = window.curTurn;
+              window.numPotentialMoves = 0;
+              /*
                 if (cell.state == 0) {
                     // this is an actual move
                     cell.state = window.curTurn;
@@ -98,6 +102,7 @@ var commitMove = function() {
                     // this is previous move highlighted
                     cell.marked = false;
                 }
+              */
             }
         });
         // send the move to the server
@@ -108,12 +113,13 @@ var commitMove = function() {
              data: JSON.stringify(send_cells),
              dataType:'json'
            });
-
+        window.frozen = true;
+        /*
         window.movesLeft = 2;
         window.curTurn = 3 - window.curTurn;
-        window.numPotentialMoves = 0;
         switchTime();
         window.passed = false;
+        */
     }
     updateStatus();
     redraw();
@@ -195,6 +201,8 @@ var initGame = function(p1_name, p2_name, handicap, size, initTime, addedTime, c
     window.cellMap = new Object();
     // whether a pass was played
     window.passed = false;
+    // disable everything when frozen
+    window.frozen = false;
     // game finished because of time or pass, pass
     window.finished = false;
     // can be game or score
@@ -294,42 +302,53 @@ var updateStatus = function(){
 }
 
 var pollServer = function() {
-    $.post('/get_state', function(data) {
-        $("#game_id").text(data.game_id);
-        if (data.status != window.local_status) {
-          if (window.local_status == "init") {
-            // start game
-            initGame(data.p1_name, data.p2_name,
-                data.handicap, data.size, 1000, 1000, data.cur_player);
-          } else if (data.status == "finished") {
-            // finish game
-          } else {
-            forEveryCell(function(cell) {
-              cell.marked = false;
-            });
-            for (var i = 0; i < data.last_move.length; i++) {
-              move_cell = getCell(data.last_move[i][0],
-                data.last_move[i][1],
-                data.last_move[i][2])
-              move_cell.marked = true;
-              move_cell.state = window.curTurn;
-            }
-            window.movesLeft = 2;
-            window.curTurn = 3 - window.curTurn;
-            window.numPotentialMoves = 0;
-            switchTime();
-            window.passed = false;
-          }
-          window.local_status = data.status;
-          updateStatus();
-          redraw();
-        }
-    });
+  $.ajax({
+       url: '/get_state',
+       type: 'POST',
+       contentType: 'application/json',
+       data: JSON.stringify({"client_state_id": window.local_state_id}),
+       dataType: 'json',
+       success: function(data) {
+         $("#game_id").text(data.game_id);
+         if (data.update == "new_data") {
+           if (window.local_state_id == "init") {
+             // start game
+             initGame(data.p1_name, data.p2_name, data.handicap,
+               data.size, 1000, 1000, data.cur_player);
+           } else if (data.state_id == "finished") {
+             // finish game
+           } else {
+              forEveryCell(function(cell) {
+                cell.marked = false;
+              });
+              for (var i = 0; i < data.last_move.length; i++) {
+                move_cell = getCell(data.last_move[i][0],
+                  data.last_move[i][1],
+                  data.last_move[i][2])
+                move_cell.marked = true;
+                move_cell.state = window.curTurn;
+              }
+              window.curTurn = data.turn;
+              window.numPotentialMoves = 0;
+              window.movesLeft = 2;
+              window.passed = false;
+              // update local time
+              switchTime();
+              window.frozen = false;
+           }
+           window.local_state_id = data.state_id;
+           updateStatus();
+           redraw();
+         } else if (data.update == "error") {
+           // handle error case
+         }
+       }
+     });
 }
 
 $(function(){
 
-    window.local_status = "init";
+    window.local_state_id = "init";
 
     $("#newGameModal").modal('show');
 
