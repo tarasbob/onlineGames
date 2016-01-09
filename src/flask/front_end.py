@@ -12,6 +12,7 @@ ASSETS = {'bootstrap_css': 'css/bootstrap.min.css',
     'jquery_js': 'js/jquery-2.0.3.min.js',
     'd3_js': 'js/d3.v3.min.js',
     'lib_js': 'js/lib.js',
+    'game_css': 'css/game.css',
     'game_page_js': 'js/game_page.js',
     'favicon_ico': 'favicon.ico',
     'front_page_js': 'js/front_page.js'}
@@ -108,6 +109,10 @@ def front_page():
     return redirect(url_for('front_page'))
   if 'username' not in session:
     return render_template('login_page.tmpl', assets=ASSETS)
+  game_to_join = session.get('game_to_join')
+  if game_to_join:
+    del session['game_to_join']
+    return redirect('/games/' + game_to_join)
   return render_template('front_page.tmpl', assets=ASSETS)
 
 @app.route('/games/<game_id>')
@@ -117,9 +122,10 @@ def join_game(game_id):
   user_id = session.get('user_id')
   user = app.users.get(user_id)
   if user is None:
+    session['game_to_join'] = game_id
     return redirect(url_for('front_page'))
   game = app.games.get(game_id)
-  if game is None or game.p1 is not None:
+  if game is None or game.p1 is not None or game.p2 == user:
     # if game does not exist or is full
     return redirect(url_for('front_page'))
   game.add_player(user)
@@ -209,4 +215,4 @@ def create_game():
   return 'success'
 
 if __name__ == '__main__':
-  app.run(host='0.0.0.0', debug=True)
+  app.run(host='0.0.0.0', debug=False)

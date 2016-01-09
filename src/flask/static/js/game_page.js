@@ -176,7 +176,7 @@ var initGame = function(p1_name, p2_name, handicap, size, initTime, cur_player){
     
     window.boardSize = size;
     // size of each cell is derived from board size
-    window.cellSize = 0.5*window.svgW/(window.boardSize*2+1);
+    window.cellSize = 0.55*window.svgW/(window.boardSize*2+1);
     // not contains all the cells, cellmap maps to this
     window.dataset = [];
     // contains all the cells in the game, map looks like i:j:k -> int (int points to element in window.dataset)
@@ -289,8 +289,9 @@ var pollServer = function() {
        data: JSON.stringify({"client_state_id": window.local_state_id}),
        dataType: 'json',
        success: function(data) {
-         if ($("#game_id").text() == "") {
-           $("#game_id").text(window.location.href + "s/" + data.game_id);
+         var game_url = window.location.href + "s/" + data.game_id;
+         if ($("#game_id").val() != game_url) {
+           $("#game_id").val(game_url);
          }
          if (data.update == "new_data" &&
              data.state_id != window.local_state_id) {
@@ -347,6 +348,10 @@ $(function(){
 
     $("#btn_pass").click(function(){
         playPass();
+    });
+
+    $("input[type='text']").on("click", function () {
+         $(this).select();
     });
 
     $("#btn_exit").click(function(){
