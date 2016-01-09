@@ -311,7 +311,8 @@ var pollServer = function() {
          if ($("#game_id").text() == "") {
            $("#game_id").text(window.location.href + "s/" + data.game_id);
          }
-         if (data.update == "new_data") {
+         if (data.update == "new_data" &&
+             data.state_id != window.local_state_id) {
            if (window.local_state_id == "init") {
              // start game
              initGame(data.p1_name, data.p2_name, data.handicap,
@@ -335,7 +336,7 @@ var pollServer = function() {
                   data.last_move[i][1],
                   data.last_move[i][2])
                 move_cell.marked = true;
-                move_cell.state = window.curTurn;
+                move_cell.state = 3 - data.turn;
               }
               window.curTurn = data.turn;
               window.numPotentialMoves = 0;
