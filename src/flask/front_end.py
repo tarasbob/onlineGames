@@ -13,6 +13,7 @@ ASSETS = {'bootstrap_css': 'css/bootstrap.min.css',
     'd3_js': 'js/d3.v3.min.js',
     'lib_js': 'js/lib.js',
     'game_page_js': 'js/game_page.js',
+    'favicon_ico': 'favicon.ico',
     'front_page_js': 'js/front_page.js'}
 
 def get_id():
@@ -47,10 +48,9 @@ class GameBoard(object):
 
 class Game(object):
 
-  def __init__(self, board_size, handicap, time_init, time_added, p2):
+  def __init__(self, board_size, handicap, time_init, p2):
     self.game_id = get_id()
     self.time_init = time_init
-    self.time_added = time_added
     self.creation_time = 0
     self.p1 = None
     self.p2 = p2
@@ -90,15 +90,6 @@ class Game(object):
   def turn(self):
     return self.board.turn
 
-  @property
-  def p1_time(self):
-    # time left for p1
-    return 1000
-
-  @property
-  def p2_time(self):
-    return 1000
-
 class User(object):
   def __init__(self, username, user_id):
     self.username = username
@@ -116,12 +107,7 @@ def front_page():
     session['user_id'] = user_id
     return redirect(url_for('front_page'))
   if 'username' not in session:
-    return '''
-        <form action="" method="post">
-            <p><input type=text name=username>
-            <p><input type=submit value=Login>
-        </form>
-    '''
+    return render_template('login_page.tmpl', assets=ASSETS)
   return render_template('front_page.tmpl', assets=ASSETS)
 
 @app.route('/games/<game_id>')
@@ -164,10 +150,10 @@ def show_game():
 def get_state():
   user = app.users.get(session.get('user_id'))
   if user is None:
-    return None
+    return ''
   game = user.game
   if game is None:
-    return None
+    return ''
   cur_player = 1 if game.p1 == user else 2
   client_state_id = request.json['client_state_id']
   if client_state_id == game.state_id:
@@ -179,10 +165,10 @@ def get_state():
         state_id=game.state_id,
         turn=game.turn,
         last_move=game.last_move,
-        p1_time=game.p1_time,
-        p2_time=game.p2_time,
+        time_init=game.time_init,
         p1_name=game.p1.username if game.p1 else 'Empty',
-        p2_name=game.p2.username, handicap=game.board.handicap,
+        p2_name=game.p2.username if game.p2 else 'Empty',
+        handicap=game.board.handicap,
         size=game.board.size,
         game_id=game.game_id,
         cur_player=cur_player)
@@ -194,10 +180,10 @@ def get_state():
 def make_move():
   user = app.users.get(session.get('user_id'))
   if user is None:
-    return None
+    return ''
   game = user.game
   if game is None:
-    return None
+    return ''
   move = request.json
   if move[0] == 'pass':
     game.finish_game()
@@ -215,7 +201,6 @@ def create_game():
         board_size=int(request.args['board_size']),
         handicap=int(request.args['handicap']),
         time_init=int(request.args['time_init']),
-        time_added=int(request.args['time_added']),
         p2=user)
   except:
     return ''

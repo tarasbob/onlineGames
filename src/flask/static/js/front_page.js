@@ -5,7 +5,6 @@ $(function(){
         var boardsize = $("#boardsize").val();
         var handicap = $("#handicap").val();
         var time_init = $("#time_init").val();
-        var time_added = $("#time_added").val();
 
         if(!(2 < boardsize && boardsize < 16)){
             boardsize = 11;
@@ -19,15 +18,11 @@ $(function(){
             time_init = 30;
         }
 
-        if(!(0 <= time_added && time_added < 2000)){
-            time_added = 30;
-        }
 
         data = {"player_name": player_name,
                 "board_size": boardsize,
                 "handicap": handicap,
-                "time_init": time_init,
-                "time_added": time_added}
+                "time_init": time_init}
 
         // send request to server
         $.get('create_game', data, function(response) { 

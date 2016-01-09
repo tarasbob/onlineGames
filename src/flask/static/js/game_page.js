@@ -25,15 +25,6 @@ var leave_game = function() {
   });
 }
 
-
-var switchTime = function(){
-  var timeForCurPlayer = window.timeLeft[window.curTurn] - (
-      Date.now() - window.timeStarted);
-  window.timeLeft[window.curTurn] = timeForCurPlayer;
-  window.timeLeft[3 - window.curTurn] += window.timeAdded;
-  window.timeStarted = Date.now();
-}
-
 function endGame(){
     window.finished = true;
     window.mode = "score";
@@ -169,24 +160,15 @@ var updateTime = function(){
             $("#p2_time").text(formatTime(timeForCurPlayer));
         }
 
-        if(timeForCurPlayer < 0){ 
-            endGame();
-
-            var modalText = "";
-            modalText += "<h1>" + window.playerNames[3 - window.curTurn] + " wins on time.</h1>";
-            $("#gameResultBody").html(modalText);
-
-            var gameResult = "";
-            gameResult += "<h4>" + window.playerNames[3 - window.curTurn] + " wins on time.</h4>";
-            $("#score_status").html(gameResult);
-
-            $("#gameResultModal").modal('show');
+        if (window.cur_player == window.curTurn &&
+            timeForCurPlayer <= 0 && !window.frozen) {
+          playPass();
         }
     }
     updateStatus();
 }
 
-var initGame = function(p1_name, p2_name, handicap, size, initTime, addedTime, cur_player){
+var initGame = function(p1_name, p2_name, handicap, size, initTime, cur_player){
 
     // call updateTime every 100 ms
     setInterval(updateTime, 100);
@@ -218,7 +200,6 @@ var initGame = function(p1_name, p2_name, handicap, size, initTime, addedTime, c
     window.movesLeft = 1 + parseInt(handicap, 10); // start the game with 1 move left
     window.playerNames = ["", p1_name, p2_name];
     
-    window.timeAdded = addedTime*1000;
     window.timeInitial = initTime*1000;
     window.timeLeft = [0, window.timeInitial, window.timeInitial];
     window.timeStarted = Date.now();
@@ -316,7 +297,7 @@ var pollServer = function() {
            if (window.local_state_id == "init") {
              // start game
              initGame(data.p1_name, data.p2_name, data.handicap,
-               data.size, 1000, 1000, data.cur_player);
+               data.size, data.time_init, data.cur_player);
            } else if (data.state_id == "finished") {
              forEveryCell(function(cell) {
                if (cell.state == 0) {
@@ -341,9 +322,10 @@ var pollServer = function() {
               window.curTurn = data.turn;
               window.numPotentialMoves = 0;
               window.movesLeft = 2;
-              window.passed = false;
               // update local time
-              switchTime();
+              window.timeLeft[1] = window.timeInitial;
+              window.timeLeft[2] = window.timeInitial;
+              window.timeStarted = Date.now();
               window.frozen = false;
            }
            window.local_state_id = data.state_id;
@@ -360,6 +342,8 @@ var pollServer = function() {
 $(function(){
 
     window.local_state_id = "init";
+    $("#btn_pass").prop('disabled', true);
+    $("#btn_move").prop('disabled', true);
 
     $("#btn_pass").click(function(){
         playPass();
