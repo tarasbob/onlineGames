@@ -74,6 +74,18 @@ class Game(object):
     self.creation_time = 0
     self._update_id()
 
+  def finish_game(self):
+    self.prev_state_id = self.state_id
+    self.state_id = 'finished'
+
+  def remove_player(self, user):
+    user.game = None
+    if self.p1 == user:
+      self.p1 = None
+    if self.p2 == user:
+      self.p2 = None
+    self.finish_game()
+
   @property
   def turn(self):
     return self.board.turn
@@ -91,6 +103,7 @@ class User(object):
   def __init__(self, username, user_id):
     self.username = username
     self.user_id = user_id
+    self.game = None
 
 @app.route("/", methods=['GET', 'POST'])
 def front_page():
@@ -126,6 +139,16 @@ def join_game(game_id):
   game.add_player(user)
   return redirect(url_for('show_game'))
 
+@app.route('/leave_game')
+def leave_game():
+  user_id = session.get('user_id')
+  user = app.users.get(user_id)
+  if user is None: return ''
+  game = user.game
+  if game is None: return ''
+  game.remove_player(user)
+  return ''
+
 @app.route('/game')
 def show_game():
   user_id = session.get('user_id')
@@ -146,7 +169,6 @@ def get_state():
   if game is None:
     return None
   cur_player = 1 if game.p1 == user else 2
-
   client_state_id = request.json['client_state_id']
   if client_state_id == game.state_id:
     return jsonify(update="no_update", game_id=game.game_id)
@@ -164,11 +186,9 @@ def get_state():
         size=game.board.size,
         game_id=game.game_id,
         cur_player=cur_player)
-    pass
   else:
     # client state id is messed up
     return jsonify(update="error")
-
 
 @app.route('/make_move', methods=['GET', 'POST'])
 def make_move():
@@ -179,7 +199,10 @@ def make_move():
   if game is None:
     return None
   move = request.json
-  game.make_move(move)
+  if move[0] == 'pass':
+    game.finish_game()
+  else:
+    game.make_move(move)
   return ''
 
 @app.route('/create_game')

@@ -1,34 +1,46 @@
 var makeMove = function(cell){
-    // when the player clicks somewhere on the board
-    if(!window.frozen && window.cur_player == window.curTurn && !window.finished && cell.state == 0) {
-        if(cell.marked == false){
-            if(window.numPotentialMoves < window.movesLeft){
-                // make a potential move (put a white dot)
-                window.numPotentialMoves++;
-                cell.marked = true;
-            }
-        } else {
-            // remove a white dot
-            window.numPotentialMoves--;
-            cell.marked = false;
-        }
+  // when the player clicks somewhere on the board
+  if(!window.frozen &&
+      window.cur_player == window.curTurn &&
+      !window.finished && cell.state == 0) {
+    if(cell.marked == false){
+      if(window.numPotentialMoves < window.movesLeft){
+         // make a potential move (put a white dot)
+         window.numPotentialMoves++;
+         cell.marked = true;
+       }
+    } else {
+       // remove a white dot
+       window.numPotentialMoves--;
+       cell.marked = false;
     }
-    updateStatus();
-    redraw();
+  }
+  updateStatus();
+  redraw();
 }
 
+var leave_game = function() {
+  $.get('leave_game', function(response) {
+     window.location.href = "/";
+  });
+}
+
+
 var switchTime = function(){
-    var timeForCurPlayer = window.timeLeft[window.curTurn] - (Date.now() - window.timeStarted);
-    window.timeLeft[window.curTurn] = timeForCurPlayer;
-    window.timeLeft[3 - window.curTurn] += window.timeAdded;
-    window.timeStarted = Date.now();
+  var timeForCurPlayer = window.timeLeft[window.curTurn] - (
+      Date.now() - window.timeStarted);
+  window.timeLeft[window.curTurn] = timeForCurPlayer;
+  window.timeLeft[3 - window.curTurn] += window.timeAdded;
+  window.timeStarted = Date.now();
 }
 
 function endGame(){
     window.finished = true;
+    window.mode = "score";
     forEveryCell(function(cell) {
         cell.marked = false;
     });
+    $("#btn_pass").prop('disabled', true);
 }
 
 function displayScore(){
@@ -60,69 +72,58 @@ function displayScore(){
     modalText += "<h3>" + window.playerNames[1] + ": " + score.total[1] + "</h3>";
     modalText += "<h3>" + window.playerNames[2] + ": " + score.total[2] + "</h3>";
     $("#gameResultBody").html(modalText);
+    $("#gameResultModal").modal('show');
 }
 
 var playPass = function(){
+  // Rename pass to done;
+  // Once player passes, game is finished, other player gets all blank cells
+  if(!window.frozen &&
+      window.cur_player == window.curTurn &&
+      !window.finished) {
     clearMarked();
-    if(!(window.finished || window.frozen)){
-        if(window.passed == true){
-            endGame();
-            // to make the game draw red and blue circles
-            window.mode = "score";
-            displayScore();
-            $("#gameResultModal").modal('show');
-            $("#btn_pass").prop('disabled', true);
-        } else {
-            window.passed = true;
-            switchTime();
-            window.curTurn = 3 - window.curTurn;
-            window.movesLeft = 2;
-            move = new Object();
-            move.pass = true;
-        }
-        updateStatus();
-        redraw();
+    $.ajax({
+      url: '/make_move',
+      type: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify(["pass"]),
+      dataType: 'json'
+    });
+  }
+  forEveryCell(function(cell) {
+    if (cell.state == 0) {
+      cell.state = 3 - window.curTurn;
     }
+  });
+  endGame();
+  displayScore();
+  updateStatus();
+  redraw();
 }
 
 var commitMove = function() {
-    if(!window.frozen && window.cur_player == window.curTurn && window.numPotentialMoves == window.movesLeft) {
-        var send_cells = [];
-        forEveryCell(function(cell) {
-            if(cell.marked == true && cell.state == 0) {
-              send_cells.push([cell.x, cell.y, cell.z]);
-              cell.state = window.curTurn;
-              window.numPotentialMoves = 0;
-              /*
-                if (cell.state == 0) {
-                    // this is an actual move
-                    cell.state = window.curTurn;
-                    send_cells.push([cell.x, cell.y, cell.z]);
-                } else {
-                    // this is previous move highlighted
-                    cell.marked = false;
-                }
-              */
-            }
-        });
-        // send the move to the server
-        $.ajax({
-             url: 'make_move',
-             type: 'POST',
-             contentType:'application/json',
-             data: JSON.stringify(send_cells),
-             dataType:'json'
-           });
-        window.frozen = true;
-        /*
-        window.movesLeft = 2;
-        window.curTurn = 3 - window.curTurn;
-        switchTime();
-        window.passed = false;
-        */
-    }
-    updateStatus();
-    redraw();
+  if(!window.frozen &&
+      window.cur_player == window.curTurn &&
+      window.numPotentialMoves == window.movesLeft) {
+    var send_cells = [];
+    forEveryCell(function(cell) {
+      if(cell.marked == true && cell.state == 0) {
+        send_cells.push([cell.x, cell.y, cell.z]);
+        cell.state = window.curTurn;
+        window.numPotentialMoves = 0;
+      }
+    });
+    $.ajax({
+      url: 'make_move',
+      type: 'POST',
+      contentType:'application/json',
+      data: JSON.stringify(send_cells),
+      dataType:'json'
+    });
+    window.frozen = true;
+  }
+  updateStatus();
+  redraw();
 }
 
 var formatTime = function(milisecs){
@@ -170,7 +171,6 @@ var updateTime = function(){
 
         if(timeForCurPlayer < 0){ 
             endGame();
-            $("#btn_pass").prop('disabled', true);
 
             var modalText = "";
             modalText += "<h1>" + window.playerNames[3 - window.curTurn] + " wins on time.</h1>";
@@ -199,8 +199,6 @@ var initGame = function(p1_name, p2_name, handicap, size, initTime, addedTime, c
     window.dataset = [];
     // contains all the cells in the game, map looks like i:j:k -> int (int points to element in window.dataset)
     window.cellMap = new Object();
-    // whether a pass was played
-    window.passed = false;
     // disable everything when frozen
     window.frozen = false;
     // game finished because of time or pass, pass
@@ -302,21 +300,32 @@ var updateStatus = function(){
 }
 
 var pollServer = function() {
-  $.ajax({
+  if (!window.finished) {
+    $.ajax({
        url: '/get_state',
        type: 'POST',
        contentType: 'application/json',
        data: JSON.stringify({"client_state_id": window.local_state_id}),
        dataType: 'json',
        success: function(data) {
-         $("#game_id").text(data.game_id);
+         if ($("#game_id").text() == "") {
+           $("#game_id").text(window.location.href + "s/" + data.game_id);
+         }
          if (data.update == "new_data") {
            if (window.local_state_id == "init") {
              // start game
              initGame(data.p1_name, data.p2_name, data.handicap,
                data.size, 1000, 1000, data.cur_player);
            } else if (data.state_id == "finished") {
-             // finish game
+             forEveryCell(function(cell) {
+               if (cell.state == 0) {
+                 cell.state = cur_player;
+               }
+             });
+             endGame();
+             displayScore();
+             updateStatus();
+             redraw();
            } else {
               forEveryCell(function(cell) {
                 cell.marked = false;
@@ -340,17 +349,16 @@ var pollServer = function() {
            updateStatus();
            redraw();
          } else if (data.update == "error") {
-           // handle error case
+           leave_game();
          }
        }
      });
+  }
 }
 
 $(function(){
 
     window.local_state_id = "init";
-
-    $("#newGameModal").modal('show');
 
     $("#btn_pass").click(function(){
         playPass();
@@ -358,6 +366,7 @@ $(function(){
 
     $("#btn_exit").click(function(){
         // return to main page (and start a new game)
+        leave_game();
     });
 
     $("#btn_move").click(function(){
