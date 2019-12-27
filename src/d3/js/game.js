@@ -88,9 +88,12 @@ var playPass = function(){
 var commitMove = function() {
     if(window.numPotentialMoves == window.movesLeft) {
         forEveryCell(function(cell) {
-            if(cell.marked == true){
+            if(cell.prev == true) {
+                cell.prev = false;
+            } else if(cell.marked == true){
                 cell.state = window.curTurn;
                 cell.marked = false;
+                cell.prev = true;
             }
         });
         window.movesLeft = 2;
@@ -127,6 +130,7 @@ var formatTime = function(milisecs){
 var clearMarked = function(){
     forEveryCell(function(cell) {
       cell.marked = false;
+      cell.prev = false;
     });
     window.numPotentialMoves = 0;
     updateStatus();
@@ -146,7 +150,7 @@ var updateTime = function(){
             $("#p2_time").text(formatTime(timeForCurPlayer));
         }
 
-        if(timeForCurPlayer < 0){ 
+        if(timeForCurPlayer < 0){
             endGame();
             $("#btn_pass").prop('disabled', true);
 
@@ -173,7 +177,7 @@ var newGame = function(p1_name, p2_name, handicap, size, initTime, addedTime){
         window.coldStart = false;
         addSVG();
     }
-    
+
     window.boardSize = size;
     // size of each cell is derived from board size
     window.cellSize = 0.55*window.svgW/(window.boardSize*2+1);
@@ -197,7 +201,7 @@ var newGame = function(p1_name, p2_name, handicap, size, initTime, addedTime){
     window.curTurn = 1;
     window.movesLeft = 1 + parseInt(handicap, 10); // start the game with 1 move left
     window.playerNames = ["", p1_name, p2_name];
-    
+
     window.timeAdded = addedTime*1000;
     window.timeInitial = initTime*1000;
     window.timeLeft = [0, window.timeInitial, window.timeInitial];
@@ -220,22 +224,23 @@ var newGame = function(p1_name, p2_name, handicap, size, initTime, addedTime){
 
                 //Push returns the length of the array; To get the index of the element, we subtract 1.
                 window.cellMap['' + i + ':' + j + ':' + k] = window.dataset.push(
-                   {"x": i, 
-                    "y": j, 
-                    "z": k, 
+                   {"x": i,
+                    "y": j,
+                    "z": k,
                     "state": 0, // 0 means empty, 1 means player 1 has a stone here, 2 means player 2
                     "patternCol": col, // which color should the empty cell be
                     "edge": edge, // is this edge or not?
                     "marked": false, // contains a white dot (potential move)
+                    "prev": false, // previous move
                     "bonus": false, // bonus cell?
                     "scoreState": 0, // used during score calculation to assign every cell to a player
                     "group": -1}) - 1; // group is used during score calculation
             }
         }
     }
-    
+
     drawHexes();
-    
+
     getCell(0, 0, 0).bonus = true;
 
     window.groups.on("click", function(d){
@@ -266,7 +271,7 @@ var updateStatus = function(){
         } else {
             $("#btn_move").prop('disabled', true);
         }
-            
+
         $("#status").text(window.playerNames[window.curTurn] + " has " + numMoves + " move(s)");
 
         var score_1 = calculateScore(1, 2);
@@ -301,7 +306,7 @@ $(function(){
     $("#btn_move").click(function(){
         commitMove();
     });
-    
+
     $("#btn_start").click(function() {
         var p1_name = $("#p1_name_inp").val();
         var p2_name = $("#p2_name_inp").val();
@@ -313,7 +318,7 @@ $(function(){
         if(!(2 < boardsize && boardsize < 16)){
             boardsize = 11;
         }
-        
+
         if(!(0 < handicap && handicap < 100)){
             handicap = 0;
         }

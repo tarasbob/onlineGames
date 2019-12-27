@@ -36,6 +36,14 @@ function redraw(){
         .attr("fill", "white")
         .attr("fill-opacity", 0.9);
 
+    //prev cells
+    window.groups.filter(function(d){return d.prev}).append("circle")
+        .attr("r", window.cellSize/3)
+        .attr("cx", function(d){ return getRealCoord(d.x, d.y, d.z).x; })
+        .attr("cy", function(d){ return getRealCoord(d.x, d.y, d.z).y; })
+        .attr("fill", "black")
+        .attr("fill-opacity", 0.9);
+
     //edge cells
     window.groups.filter(function(d){return d.edge}).append("circle")
         .attr("r", window.cellSize/10)
@@ -95,12 +103,12 @@ var forEveryCell = function(func){
 
 Array.prototype.remove = function(element) {
     for (var i = 0; i < this.length; i++) {
-        if (element.compare) { 
+        if (element.compare) {
             if (this[i].compare(element)){
                 this.splice(i, 1);
                 break;
             }
-        } else if (this[i] === element){ 
+        } else if (this[i] === element){
             this.splice(i, 1);
             break;
         }
@@ -119,9 +127,9 @@ Array.prototype.vectorAdd = function(otherArr) {
 Array.prototype.compare = function(testArr) {
     if (this.length != testArr.length) return false;
     for (var i = 0; i < testArr.length; i++) {
-        if (this[i].compare) { 
+        if (this[i].compare) {
             if (!this[i].compare(testArr[i])) return false;
-        } else if (this[i] !== testArr[i]){ 
+        } else if (this[i] !== testArr[i]){
             return false;
         }
     }
@@ -130,9 +138,9 @@ Array.prototype.compare = function(testArr) {
 
 Array.prototype.contains = function(element) {
     for (var i = 0; i < this.length; i++) {
-        if (element.compare) { 
+        if (element.compare) {
             if (this[i].compare(element)) return true;
-        } else if (this[i] === element){ 
+        } else if (this[i] === element){
             return true;
         }
     }
@@ -141,7 +149,7 @@ Array.prototype.contains = function(element) {
 
 Array.prototype.extendUnique = function(otherArr) {
     for (var i = 0; i < otherArr.length; i++) {
-        if (!this.contains(otherArr[i])) { 
+        if (!this.contains(otherArr[i])) {
             this.push(otherArr[i]);
         }
     }
@@ -225,7 +233,7 @@ function addSVG(){
 function calculateScore(max_player, min_player){
     forEveryCell(function(cell) {
         if(cell.state == min_player)
-            cell.scoreState = min_player; 
+            cell.scoreState = min_player;
         else
             cell.scoreState = max_player;
     });
@@ -246,21 +254,21 @@ function calculateScore(max_player, min_player){
                 numGroups[cell.scoreState] += 1;
             }
         });
-        
+
         var numEdgeNodes = [[], [], []];
         for(var j = 1; j < 3; j++){
             for(var i = 0; i < numGroups[j]; i++){
                 numEdgeNodes[j].push(0);
             }
         }
-        
+
         //determine the number of edge cells in each group
         forEveryCell(function(cell) {
             if(cell.edge){
                 numEdgeNodes[cell.scoreState][cell.group] += 1;
             }
         });
-        
+
         //for every group that has less than 2 edge cells, switch the color
         forEveryCell(function(cell) {
             if(numEdgeNodes[cell.scoreState][cell.group] < 2){
@@ -271,7 +279,7 @@ function calculateScore(max_player, min_player){
     }
 
     assert(done);
-    
+
     //calculate the final score
     numEdges = [0, 0, 0];
     numBonus = [0, 0, 0];
@@ -281,7 +289,7 @@ function calculateScore(max_player, min_player){
         if(cell.bonus)
             numBonus[cell.scoreState] += 1;
     });
-    
+
     scores = new Object();
     scores["edge"] = numEdges;
     scores["groups"] = [0, 2*(numGroups[2] - numGroups[1]), 2*(numGroups[1] - numGroups[2])];
@@ -292,9 +300,9 @@ function calculateScore(max_player, min_player){
     scores["total"] = [0, 0, 0];
     scores["total"][1] = scores["edge"][1] + scores["groups"][1] + scores["special"][1];
     scores["total"][2] = scores["edge"][2] + scores["groups"][2] + scores["special"][2];
-    
+
     assert(scores.total[1] + scores.total[2] == window.boardSize * 6 + 1);
-    
+
     return scores;
 }
 
