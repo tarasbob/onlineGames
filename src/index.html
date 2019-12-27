@@ -7,7 +7,7 @@
     <meta name="author" content="">
     <link rel="shortcut icon" href="static/ico/favicon.png">
 
-    <title>Starter Template for Bootstrap</title>
+    <title>Edge Connect</title>
 
     <!-- Bootstrap core CSS -->
     <link href="css/bootstrap.css" rel="stylesheet">
@@ -18,25 +18,21 @@
   <body>
 
     <div class="container">
-        <div class="col-md-10" id="board">
-        </div>
-        <div class="col-md-2">
-            <button type="button" id="btn_next" class="btn btn-primary btn-block">Next</button>
-            <button type="button" id="btn_prev" class="btn btn-primary btn-block">Back</button>
-            <a href="index.html" class="btn btn-primary btn-block">Return to Main</a>
-            <hr>
-            <div id="status">Player 1 has 2 moves</div>
-        </div>
+        <div class="jumbotron">
+            <h1>Edge Connect</h1>
+            <p>The objective of the game is to acquire as many edge cells as possible while at the same time having as few groups as possible. Groups that have only 1 edge cell are given to the opponent.</p>
+            <p>The score is calculated as follows for each player:</p>
+            <p>score = num_edge_cells + num_center_cells + (num_opponent_groups - num_groups) * 2</p>
+            <p>Note: num_center_cells is 0 or 1. The sum of the two scores should equal to the number of edge cells plus one.</p>
+            <a href="single.html" class="btn btn-primary btn-lg">Play</a>
+        </div><!-- /.jumbotron -->
     </div><!-- /.container -->
+
 
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
     <script src="js/jquery-2.0.3.min.js"></script>
-    <script src="js/d3.v3.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
-    <script src="js/lib.js"></script>
-    <script src="js/tutPositions.js"></script>
-    <script src="js/tut2.js"></script>
   </body>
 </html>
