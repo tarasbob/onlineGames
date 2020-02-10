@@ -20,6 +20,7 @@ var makeMove = function(cell){
 var switchTime = function(){
     var timeForCurPlayer = window.timeLeft[window.curTurn] - (Date.now() - window.timeStarted);
     window.timeLeft[window.curTurn] = timeForCurPlayer;
+
     window.timeLeft[3 - window.curTurn] += window.timeAdded;
     window.timeStarted = Date.now();
 }
@@ -96,10 +97,10 @@ var commitMove = function() {
                 cell.prev = true;
             }
         });
+        switchTime();
         window.movesLeft = 2;
         window.curTurn = 3 - window.curTurn;
         window.numPotentialMoves = 0;
-        switchTime();
         window.passed = false;
     }
     updateStatus();
